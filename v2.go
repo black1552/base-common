@@ -126,7 +126,7 @@ func AuthBase(r *ghttp.Request, name string) {
 	if err != nil {
 		panic(err.Error())
 	}
-	if info.IsEmpty() {
+	if !info.IsEmpty() {
 		r.Middleware.Next()
 	} else {
 		NoLogin(r)
