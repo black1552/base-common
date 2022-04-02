@@ -150,9 +150,10 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
-func Start(address, agent string, time time.Duration, maxBody ...int64) *ghttp.Server {
+func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr(address)
+	s.SetDumpRouterMap(isLogRouter)
 	s.SetServerRoot(gfile.Pwd() + "/resource")
 	path := gfile.Pwd() + "/resource/public/upload"
 	s.AddSearchPath(path)
@@ -169,7 +170,7 @@ func Start(address, agent string, time time.Duration, maxBody ...int64) *ghttp.S
 	s.SetDumpRouterMap(true)
 	s.SetErrorStack(true)
 	s.SetAccessLogEnabled(true)
-	s.SetSessionMaxAge(time)
+	s.SetSessionMaxAge(maxSessionTime)
 	_ = s.SetConfigWithMap(g.Map{
 		"sessionPath":    gfile.Pwd() + "/resource/session",
 		"serverAgent":    agent,
