@@ -152,7 +152,7 @@ func NoLogin(r *ghttp.Request) {
 
 func Start(address, agent string, time time.Duration, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
-	s.SetAddr("127.0.0.1:8000")
+	s.SetAddr(address)
 	s.SetServerRoot(gfile.Pwd() + "/resource")
 	path := gfile.Pwd() + "/resource/public/upload"
 	s.AddSearchPath(path)
@@ -168,11 +168,11 @@ func Start(address, agent string, time time.Duration, maxBody ...int64) *ghttp.S
 	s.SetMaxHeaderBytes(1024 * 20)
 	s.SetDumpRouterMap(true)
 	s.SetErrorStack(true)
-	s.SetAccessLogEnabled(false)
+	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(time)
 	_ = s.SetConfigWithMap(g.Map{
 		"sessionPath":    gfile.Pwd() + "/resource/session",
-		"serverAgent":    "GO Security Assistant Http Server",
+		"serverAgent":    agent,
 		"SessionStorage": gsession.NewStorageMemory(),
 	})
 	s.Use(MiddlewareError)
