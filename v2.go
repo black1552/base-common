@@ -150,7 +150,7 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
-func Start(address, agent string, time time.Duration, maxBody ...int64) {
+func Start(address, agent string, time time.Duration, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr("127.0.0.1:8000")
 	s.SetServerRoot(gfile.Pwd() + "/resource")
@@ -176,4 +176,5 @@ func Start(address, agent string, time time.Duration, maxBody ...int64) {
 		"SessionStorage": gsession.NewStorageMemory(),
 	})
 	s.Use(MiddlewareError)
+	return s
 }
