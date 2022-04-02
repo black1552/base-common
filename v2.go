@@ -5,7 +5,6 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/gsession"
 	"github.com/gogf/gf/v2/text/gstr"
 	"time"
 )
@@ -172,9 +171,8 @@ func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
 	_ = s.SetConfigWithMap(g.Map{
-		"sessionPath":    gfile.Pwd() + "/resource/session",
-		"serverAgent":    agent,
-		"SessionStorage": gsession.NewStorageMemory(),
+		"sessionPath": gfile.Pwd() + "/resource/session",
+		"serverAgent": agent,
 	})
 	s.Use(MiddlewareError)
 	return s
