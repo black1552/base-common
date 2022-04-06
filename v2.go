@@ -150,11 +150,11 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
-func Start(address, agent, host, sqlPort, sqlRoot, sqlPass, baseName string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
+func Start(address, agent, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
 	gdb.SetConfig(gdb.Config{
 		"default": gdb.ConfigGroup{
 			gdb.ConfigNode{
-				Host:  host,
+				Host:  sqlHost,
 				Port:  sqlPort,
 				User:  sqlRoot,
 				Pass:  sqlPass,
