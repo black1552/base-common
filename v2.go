@@ -150,6 +150,19 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
+func CreateFileDir() error {
+	path := gfile.Pwd() + "/resource"
+	if !gfile.IsDir(path) {
+		if err := gfile.Mkdir(path); err != nil {
+			return err
+		}
+		if err := gfile.Mkdir(path + "/public/upload"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func CreateDB(sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
 	gdb.SetConfig(gdb.Config{
 		"default": gdb.ConfigGroup{
