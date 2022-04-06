@@ -150,7 +150,7 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
-func Start(address, agent, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
+func CreateDB(sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
 	gdb.SetConfig(gdb.Config{
 		"default": gdb.ConfigGroup{
 			gdb.ConfigNode{
@@ -164,6 +164,9 @@ func Start(address, agent, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, 
 				Debug: false,
 			},
 		}})
+}
+
+func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(isLogRouter)
@@ -171,7 +174,10 @@ func Start(address, agent, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, 
 	path := gfile.Pwd() + "/resource/public/upload"
 	s.AddSearchPath(path)
 	s.AddStaticPath("/upload", path)
-	_ = s.SetLogPath(gfile.Pwd() + "/resource/log")
+	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
+	if err != nil {
+		panic(err)
+	}
 	s.SetLogLevel("all")
 	s.SetLogStdout(false)
 	if len(maxBody) > 0 {
@@ -184,10 +190,13 @@ func Start(address, agent, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, 
 	s.SetErrorStack(true)
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
-	_ = s.SetConfigWithMap(g.Map{
+	err = s.SetConfigWithMap(g.Map{
 		"sessionPath": gfile.Pwd() + "/resource/session",
 		"serverAgent": agent,
 	})
+	if err != nil {
+		panic(err)
+	}
 	s.Use(MiddlewareError)
 	return s
 }
