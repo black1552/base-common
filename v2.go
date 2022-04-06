@@ -2,6 +2,7 @@ package v2
 
 import (
 	"context"
+	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -149,7 +150,20 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
-func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
+func Start(address, agent, host, sqlPort, sqlRoot, sqlPass, baseName string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
+	gdb.SetConfig(gdb.Config{
+		"default": gdb.ConfigGroup{
+			gdb.ConfigNode{
+				Host:  host,
+				Port:  sqlPort,
+				User:  sqlRoot,
+				Pass:  sqlPass,
+				Name:  baseName,
+				Type:  "mysql",
+				Role:  "master",
+				Debug: false,
+			},
+		}})
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(isLogRouter)
