@@ -70,6 +70,20 @@ func (a *ApiRes) End() {
 	return
 }
 
+func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
+	var info interface{}
+	if len(data) > 0 {
+		info = data[0]
+	} else {
+		info = nil
+	}
+	_ = r.Response.WriteJsonExit(Json{
+		Code: 1,
+		Data: info,
+		Msg:  "登录成功",
+	})
+}
+
 func ResponseJson(ctx context.Context, data interface{}) {
 	err := g.RequestFromCtx(ctx).Response.WriteJson(data)
 	if err != nil {
