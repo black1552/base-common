@@ -120,10 +120,17 @@ func MiddlewareError(r *ghttp.Request) {
 	r.Response.CORSDefault()
 	r.Middleware.Next()
 	if err := r.GetError(); err != nil {
+		bo := gstr.Contains(err.Error(), ": ")
+		msg := ""
+		if bo {
+			msg = gstr.SubStrFromEx(err.Error(), ": ")
+		} else {
+			msg = err.Error()
+		}
 		r.Response.ClearBuffer()
 		json := Json{
 			Code: 0,
-			Msg:  gstr.SubStrFromEx(err.Error(), ": "),
+			Msg:  msg,
 		}
 		r.Response.Status = 200
 		err := r.Response.WriteJson(json)
