@@ -219,7 +219,7 @@ func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool
 	} else {
 		s.SetClientMaxBodySize(200 * 1024 * 1024)
 	}
-	s.SetOpenApiPath("./api.json")
+	s.SetOpenApiPath("/api.json")
 	s.SetSwaggerPath("/swagger")
 	s.SetMaxHeaderBytes(1024 * 20)
 	s.SetDumpRouterMap(true)
