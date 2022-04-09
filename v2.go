@@ -224,6 +224,7 @@ func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool
 	s.SetMaxHeaderBytes(1024 * 20)
 	s.SetDumpRouterMap(true)
 	s.SetErrorStack(true)
+	s.SetSessionIdName("zrSession")
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
 	err = s.SetConfigWithMap(g.Map{
