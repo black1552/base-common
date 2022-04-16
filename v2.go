@@ -117,7 +117,7 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
-	r.Response.CORSDefault()
+	//r.Response.CORSDefault()
 	r.Middleware.Next()
 	if err := r.GetError(); err != nil {
 		bo := gstr.Contains(err.Error(), ": ")
@@ -142,7 +142,6 @@ func MiddlewareError(r *ghttp.Request) {
 
 // AuthBase 鉴权中间件，只有前端或者后端登录成功之后才能通过
 func AuthBase(r *ghttp.Request, name string) {
-	r.Response.CORSDefault()
 	info, err := r.Session.Get(name, nil)
 	if err != nil {
 		panic(err.Error())
@@ -162,7 +161,6 @@ func AuthIndex(r *ghttp.Request) {
 }
 
 func NoLogin(r *ghttp.Request) {
-
 	r.Response.Status = 200
 	_ = r.Response.WriteJsonExit(Json{
 		Code: 401,
@@ -200,10 +198,10 @@ func CreateDB(sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
 		}})
 }
 
-func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool, maxBody ...int64) *ghttp.Server {
+func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr(address)
-	s.SetDumpRouterMap(isLogRouter)
+	s.SetDumpRouterMap(false)
 	s.SetServerRoot(gfile.Pwd() + "/resource")
 	path := gfile.Pwd() + "/resource/public/upload"
 	s.AddSearchPath(path)
@@ -222,7 +220,6 @@ func Start(address, agent string, maxSessionTime time.Duration, isLogRouter bool
 	s.SetOpenApiPath("/api.json")
 	s.SetSwaggerPath("/swagger")
 	s.SetMaxHeaderBytes(1024 * 20)
-	s.SetDumpRouterMap(true)
 	s.SetErrorStack(true)
 	s.SetSessionIdName("zrSession")
 	s.SetAccessLogEnabled(true)
