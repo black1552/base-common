@@ -161,7 +161,7 @@ func AuthIndex(r *ghttp.Request) {
 }
 
 func NoLogin(r *ghttp.Request) {
-	r.Response.Status = 200
+	r.Response.Status = 401
 	_ = r.Response.WriteJsonExit(Json{
 		Code: 401,
 		Data: nil,
