@@ -56,6 +56,12 @@ func RemoveCron(name string) {
 	gcron.Remove(name)
 }
 
+// SearchCron 查询定时任务运行状态 如果定时任务未运行则返回NIL 运行则返回运行状态
+func SearchCron(name string) *gcron.Entry {
+	cron := gcron.Search(name)
+	return cron
+}
+
 // PostResult 建立POST请求并返回结果
 func PostResult(ctx context.Context, url string, data g.Map, header string, class string) (string, error) {
 	if url == "" {
