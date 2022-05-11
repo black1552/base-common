@@ -208,6 +208,12 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 		if err != nil {
 			panic(err.Error())
 		}
+		_ = gfile.Mkdir(gfile.Pwd() + "/resource/template")
+		_ = gfile.Mkdir(gfile.Pwd() + "/resource/scripts")
+		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/html")
+		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/css")
+		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/image")
+		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/js")
 	}
 	s.SetServerRoot(gfile.Pwd() + "/resource")
 	s.AddSearchPath(path)
