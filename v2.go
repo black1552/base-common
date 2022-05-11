@@ -202,7 +202,6 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
-	s.SetServerRoot(gfile.Pwd() + "/resource")
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
 		err := gfile.Mkdir(path)
@@ -210,6 +209,7 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 			panic(err.Error())
 		}
 	}
+	s.SetServerRoot(gfile.Pwd() + "/resource")
 	s.AddSearchPath(path)
 	s.AddStaticPath("/upload", path)
 	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
