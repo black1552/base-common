@@ -2,6 +2,7 @@ package v2
 
 import (
 	"context"
+	"fmt"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -220,7 +221,7 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 	s.AddStaticPath("/upload", path)
 	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	s.SetLogLevel("all")
 	s.SetLogStdout(false)
@@ -241,7 +242,7 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 		"serverAgent": agent,
 	})
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	s.Use(MiddlewareError)
 	return s
