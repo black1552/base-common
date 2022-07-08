@@ -78,7 +78,7 @@ func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
 	r.Response.WriteJsonExit(Json{
 		Code: 1,
 		Data: info,
-		Msg:  "登录成功",
+		Msg:  msg,
 	})
 }
 
