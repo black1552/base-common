@@ -64,10 +64,7 @@ func (a *ApiRes) SetMsg(msg string) *ApiRes {
 func (a *ApiRes) End() {
 	from := g.RequestFromCtx(a.ctx)
 	from.Response.Status = 200
-	err := from.Response.WriteJson(a.json)
-	if err != nil {
-		panic(err.Error())
-	}
+	from.Response.WriteJson(a.json)
 	return
 }
 
@@ -78,7 +75,7 @@ func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
 	} else {
 		info = nil
 	}
-	_ = r.Response.WriteJsonExit(Json{
+	r.Response.WriteJsonExit(Json{
 		Code: 1,
 		Data: info,
 		Msg:  "登录成功",
@@ -86,10 +83,7 @@ func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
 }
 
 func ResponseJson(ctx context.Context, data interface{}) {
-	err := g.RequestFromCtx(ctx).Response.WriteJson(data)
-	if err != nil {
-		panic(err.Error())
-	}
+	g.RequestFromCtx(ctx).Response.WriteJson(data)
 	return
 }
 
@@ -134,10 +128,7 @@ func MiddlewareError(r *ghttp.Request) {
 			Msg:  msg,
 		}
 		r.Response.Status = 200
-		err := r.Response.WriteJson(json)
-		if err != nil {
-			panic(err.Error())
-		}
+		r.Response.WriteJson(json)
 	}
 }
 
@@ -163,7 +154,7 @@ func AuthIndex(r *ghttp.Request) {
 
 func NoLogin(r *ghttp.Request) {
 	r.Response.Status = 401
-	_ = r.Response.WriteJsonExit(Json{
+	r.Response.WriteJsonExit(Json{
 		Code: 401,
 		Data: nil,
 		Msg:  "请登录后操作",
