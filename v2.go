@@ -8,7 +8,6 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"time"
 )
@@ -193,9 +192,8 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 						Debug: false,
 					},
 				}})
-		} else {
-			glog.Info(ctx, "数据库已切换至配置文件")
 		}
+		time.Sleep(time.Hour)
 	}
 }
 
