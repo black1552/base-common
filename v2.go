@@ -6,7 +6,9 @@ import (
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"time"
 )
@@ -174,20 +176,27 @@ func CreateFileDir() error {
 	return nil
 }
 
-func CreateDB(sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
-	gdb.SetConfig(gdb.Config{
-		"default": gdb.ConfigGroup{
-			gdb.ConfigNode{
-				Host:  sqlHost,
-				Port:  sqlPort,
-				User:  sqlRoot,
-				Pass:  sqlPass,
-				Name:  baseName,
-				Type:  "mysql",
-				Role:  "master",
-				Debug: false,
-			},
-		}})
+func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
+	cfg := gcfg.Instance()
+	for {
+		if !cfg.Available(ctx) {
+			gdb.SetConfig(gdb.Config{
+				"default": gdb.ConfigGroup{
+					gdb.ConfigNode{
+						Host:  sqlHost,
+						Port:  sqlPort,
+						User:  sqlRoot,
+						Pass:  sqlPass,
+						Name:  baseName,
+						Type:  "mysql",
+						Role:  "master",
+						Debug: false,
+					},
+				}})
+		} else {
+			glog.Info(ctx, "数据库已切换至配置文件")
+		}
+	}
 }
 
 func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64) *ghttp.Server {
