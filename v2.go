@@ -178,7 +178,8 @@ func CreateFileDir() error {
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
 	cfg := gcfg.Instance()
 	for {
-		if !cfg.Available(ctx) {
+		cfgBase, _ := cfg.Get(ctx, "database")
+		if cfgBase == nil {
 			gdb.SetConfig(gdb.Config{
 				"default": gdb.ConfigGroup{
 					gdb.ConfigNode{
