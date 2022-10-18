@@ -175,7 +175,7 @@ func CreateFileDir() error {
 	return nil
 }
 
-func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string) {
+func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
 	cfg := gcfg.Instance()
 	for {
 		cfgBase, _ := cfg.Get(ctx, "database")
@@ -190,7 +190,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 						Name:  baseName,
 						Type:  "mysql",
 						Role:  "master",
-						Debug: false,
+						Debug: debug,
 					},
 				}})
 		}
