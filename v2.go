@@ -183,14 +183,16 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 			gdb.SetConfig(gdb.Config{
 				"default": gdb.ConfigGroup{
 					gdb.ConfigNode{
-						Host:  sqlHost,
-						Port:  sqlPort,
-						User:  sqlRoot,
-						Pass:  sqlPass,
-						Name:  baseName,
-						Type:  "mysql",
-						Role:  "master",
-						Debug: debug,
+						Host:      sqlHost,
+						Port:      sqlPort,
+						User:      sqlRoot,
+						Pass:      sqlPass,
+						Name:      baseName,
+						Type:      "mysql",
+						Role:      "master",
+						CreatedAt: "create_time",
+						UpdatedAt: "update_time",
+						Debug:     debug,
 					},
 				}})
 		}
