@@ -231,6 +231,7 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 	} else {
 		s.SetClientMaxBodySize(200 * 1024 * 1024)
 	}
+	s.SetFormParsingMemory(50 * 1024 * 1024)
 	s.SetOpenApiPath("/api.json")
 	s.SetSwaggerPath("/swagger")
 	s.SetMaxHeaderBytes(1024 * 20)
