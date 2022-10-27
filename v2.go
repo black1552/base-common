@@ -200,7 +200,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64) *ghttp.Server {
+func Start(address, agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
@@ -232,8 +232,10 @@ func Start(address, agent string, maxSessionTime time.Duration, maxBody ...int64
 		s.SetClientMaxBodySize(200 * 1024 * 1024)
 	}
 	s.SetFormParsingMemory(50 * 1024 * 1024)
-	s.SetOpenApiPath("/api.json")
-	s.SetSwaggerPath("/swagger")
+	if isApi {
+		s.SetOpenApiPath("/api.json")
+		s.SetSwaggerPath("/swagger")
+	}
 	s.SetMaxHeaderBytes(1024 * 20)
 	s.SetErrorStack(true)
 	s.SetSessionIdName("zrSession")
