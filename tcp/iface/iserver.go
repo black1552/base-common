@@ -25,4 +25,7 @@ type IServer interface {
 	CallOnConnStart(conn IConnection)       //调用连接OnConnStart Hook函数
 	CallOnConnStop(conn IConnection)        //调用连接OnConnStop Hook函数
 	Packet() IDataPack
+	SetName(name string)
+	SetHost(host string)
+	SetPort(port int)
 }
