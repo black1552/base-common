@@ -9,6 +9,7 @@ import (
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"time"
 )
 
@@ -202,7 +203,11 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 
 func Start(address, agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
-	s.SetAddr(address)
+	if address == "" {
+		s.SetAddr("127.0.0.1:" + gconv.String(GetPort(agent)))
+	} else {
+		s.SetAddr(address)
+	}
 	s.SetDumpRouterMap(false)
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
