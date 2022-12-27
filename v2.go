@@ -64,6 +64,7 @@ func (a *ApiRes) SetMsg(msg string) *ApiRes {
 
 func (a *ApiRes) End() {
 	from := g.RequestFromCtx(a.ctx)
+	from.Header.Set("Access-Control-Expose-Headers", "Set-Cookie")
 	from.Response.Status = 200
 	from.Response.WriteJson(a.json)
 	return
