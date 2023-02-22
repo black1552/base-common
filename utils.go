@@ -37,7 +37,7 @@ func Compress(filePath string) string {
 	return sta[0] + "-cop." + sta[1]
 }
 
-func inStrArray(ext string, code int) bool {
+func InStrArray(ext string, code int) bool {
 	if code == 1 {
 		arr := garray.NewStrArrayFrom(g.SliceStr{".jpg", ".jpeg", ".png"})
 		return arr.Contains(ext)
