@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/gogf/gf/v2 v2.1.1
-	gopkg.in/yaml.v2 v2.4.0
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 )
 
 require (
