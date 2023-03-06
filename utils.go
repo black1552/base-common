@@ -1,11 +1,12 @@
 package v2
 
 import (
-	"context"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/nfnt/resize"
 	"image/jpeg"
 	"os"
@@ -48,21 +49,37 @@ func InStrArray(ext string, code int) bool {
 	}
 }
 
-type LogInfo struct {
-	ctx  context.Context
-	path string
-}
+var (
+	Path     = gfile.Pwd() + "/device-log/"
+	Name     = "info_"
+	Exp      = ".log"
+	FilePath = ""
+)
 
-func InitInfo(ctx context.Context, path string) {
-	l := new(LogInfo)
-	l.path = path
-	l.ctx = ctx
-}
+func DeBug(content string) {
+	time := gtime.Datetime()
+	timeHour := gstr.Split(time, ":")[0]
+	name := Name + timeHour + Exp
+	FilePath = Path + name
+	if !gfile.IsFile(FilePath) {
+		_, err := gfile.Create(FilePath)
+		if err != nil {
+			panic(err)
+		}
+	}
+	file, err := gfile.OpenFile(FilePath, os.O_APPEND|os.O_WRONLY, gfile.DefaultPermCopy)
 
-func (l *LogInfo) WriteInfo(info ...interface{}) {
-	g.Log().Line(true).Path(l.path).Info(l.ctx, info)
-}
-
-func (l *LogInfo) WriteError(info ...interface{}) {
-	g.Log().Line(true).Path(l.path).Error(l.ctx, info)
+	if err != nil {
+		panic(err)
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
+	_, err = file.Write(gconv.Bytes("\n" + gtime.Datetime() + ">>>>" + content))
+	if err != nil {
+		panic(err)
+	}
 }
