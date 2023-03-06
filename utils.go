@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"context"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -45,4 +46,22 @@ func InStrArray(ext string, code int) bool {
 		arr := garray.NewStrArrayFrom(g.SliceStr{".xlsx"})
 		return arr.Contains(ext)
 	}
+}
+
+type LogInfo struct {
+	ctx  context.Context
+	path string
+}
+
+func (l *LogInfo) InitInfo(ctx context.Context, path string) {
+	l.path = path
+	l.ctx = ctx
+}
+
+func (l *LogInfo) WriteInfo(info interface{}) {
+	g.Log().Line(true).Path(l.path).Info(l.ctx, info)
+}
+
+func (l *LogInfo) WriteError(info interface{}) {
+	g.Log().Line(true).Path(l.path).Error(l.ctx, info)
 }
