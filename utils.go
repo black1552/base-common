@@ -59,10 +59,10 @@ func InitInfo(ctx context.Context, path string) {
 	l.ctx = ctx
 }
 
-func (l *LogInfo) WriteInfo(info interface{}) {
+func (l *LogInfo) WriteInfo(info ...interface{}) {
 	g.Log().Line(true).Path(l.path).Info(l.ctx, info)
 }
 
-func (l *LogInfo) WriteError(info interface{}) {
+func (l *LogInfo) WriteError(info ...interface{}) {
 	g.Log().Line(true).Path(l.path).Error(l.ctx, info)
 }
