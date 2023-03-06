@@ -53,7 +53,8 @@ type LogInfo struct {
 	path string
 }
 
-func (l *LogInfo) InitInfo(ctx context.Context, path string) {
+func InitInfo(ctx context.Context, path string) {
+	l := new(LogInfo)
 	l.path = path
 	l.ctx = ctx
 }
