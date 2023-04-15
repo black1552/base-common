@@ -7,9 +7,7 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
-	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/nfnt/resize"
 	"image/jpeg"
 	"os"
@@ -74,7 +72,7 @@ func InitLog(path string) {
 	log.SetStack(true)
 	log.SetStdoutPrint(true)
 	log.SetFile("{Y-m-d}.log")
-	_ = log.SetLevelStr("INFO")
+	_ = log.SetLevelStr("ALL")
 	_ = log.SetPath(logPath)
 }
 
@@ -86,32 +84,4 @@ func LogError(text ...interface{}) {
 }
 func LogDebug(text ...interface{}) {
 	log.Debug(ctx, text...)
-}
-
-func DeBug(content string) {
-	time := gtime.Datetime()
-	timeHour := gstr.Split(time, ":")[0]
-	name := Name + timeHour + Exp
-	FilePath = Path + name
-	if !gfile.IsFile(FilePath) {
-		_, err := gfile.Create(FilePath)
-		if err != nil {
-			panic(err)
-		}
-	}
-	file, err := gfile.OpenFile(FilePath, os.O_APPEND|os.O_WRONLY, gfile.DefaultPermCopy)
-
-	if err != nil {
-		panic(err)
-	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(file)
-	_, err = file.Write(gconv.Bytes("\n" + gtime.Datetime() + ">>>>" + content))
-	if err != nil {
-		panic(err)
-	}
 }
