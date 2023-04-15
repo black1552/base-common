@@ -51,12 +51,8 @@ func InStrArray(ext string, code int) bool {
 }
 
 var (
-	Path     = gfile.Pwd() + "/device-log/"
-	Name     = "info_"
-	Exp      = ".log"
-	FilePath = ""
-	log      *glog.Logger
-	ctx      context.Context
+	log *glog.Logger
+	ctx context.Context
 )
 
 func InitLog(path string) {
