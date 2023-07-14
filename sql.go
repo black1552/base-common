@@ -2,6 +2,7 @@ package v2
 
 import (
 	"context"
+	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
@@ -22,7 +23,7 @@ func GetCapitalPass(val string) string {
 
 // Transaction 简单封装事务操作
 func Transaction(function func() error) {
-	err := g.DB().Transaction(context.TODO(), func(ctx context.Context, tx *gdb.TX) error {
+	err := g.DB().Transaction(context.TODO(), func(ctx context.Context, tx gdb.TX) error {
 		return function()
 	})
 	if err != nil {
