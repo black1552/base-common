@@ -201,7 +201,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(address, agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
+func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
@@ -250,5 +250,10 @@ func Start(address, agent string, maxSessionTime time.Duration, isApi bool, maxB
 		fmt.Println(err)
 	}
 	s.Use(MiddlewareError)
+	if skipUrl != "" {
+		s.BindHandler("/", func(r *ghttp.Request) {
+			r.Response.RedirectTo(skipUrl)
+		})
+	}
 	return s
 }
