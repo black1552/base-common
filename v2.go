@@ -189,6 +189,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 						User:      sqlRoot,
 						Pass:      sqlPass,
 						Name:      baseName,
+						Timezone:  "local",
 						Type:      "mysql",
 						Role:      "master",
 						CreatedAt: "create_time",
