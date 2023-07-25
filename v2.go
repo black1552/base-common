@@ -70,7 +70,7 @@ func (a *ApiRes) End() {
 	return
 }
 
-func (a *ApiRes) FileDownload(path string) {
+func (a *ApiRes) FileDownload(path, name string) {
 	from := g.RequestFromCtx(a.ctx)
 	from.Response.ServeFileDownload(path)
 	return
