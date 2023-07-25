@@ -70,6 +70,12 @@ func (a *ApiRes) End() {
 	return
 }
 
+func (a *ApiRes) FileDownload(path string) {
+	from := g.RequestFromCtx(a.ctx)
+	from.Response.ServeFileDownload(path)
+	return
+}
+
 func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
 	var info interface{}
 	if len(data) > 0 {
