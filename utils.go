@@ -67,17 +67,22 @@ func InitLog(path string) {
 	}
 	log.SetStack(true)
 	log.SetStdoutPrint(true)
-	log.SetFile("{Y-m-d}.log")
+	_ = log.SetConfig(glog.Config{
+		RotateSize: 1024 * 1024 * 1024 * 2,
+	})
 	_ = log.SetLevelStr("ALL")
 	_ = log.SetPath(logPath)
 }
 
 func LogInfo(text ...interface{}) {
+	log.SetFile("{Y-m-d}.log")
 	log.Info(ctx, text...)
 }
 func LogError(text ...interface{}) {
+	log.SetFile("{Y-m-d}-error.log")
 	log.Error(ctx, text...)
 }
 func LogDebug(text ...interface{}) {
+	log.SetFile("{Y-m-d}-debug.log")
 	log.Debug(ctx, text...)
 }
