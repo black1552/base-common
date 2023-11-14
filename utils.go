@@ -55,10 +55,10 @@ var (
 	ctx context.Context
 )
 
-func InitLog(path string) {
+func init() {
 	ctx = gctx.New()
 	log = glog.New()
-	logPath := gfile.Pwd() + "/" + path
+	logPath := gfile.Pwd() + "/logs"
 	if !gfile.IsDir(logPath) {
 		err := gfile.Mkdir(logPath)
 		if err != nil {
