@@ -283,38 +283,3 @@ func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skip
 	}
 	return s
 }
-
-func Log(ctx context.Context) *Logs {
-	logs := glog.New()
-	logPath := gfile.Pwd() + "/logs"
-	if !gfile.IsDir(logPath) {
-		err := gfile.Mkdir(logPath)
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	logs.SetStack(true)
-	logs.SetStdoutPrint(true)
-	_ = logs.SetConfig(glog.Config{
-		RotateSize: 1024 * 1024 * 1024 * 2,
-	})
-	_ = logs.SetLevelStr("ALL")
-	_ = logs.SetPath(logPath)
-	return &Logs{
-		logs: glog.New(),
-		ctx:  ctx,
-	}
-}
-
-func (l *Logs) LogInfo(text ...interface{}) {
-	l.logs.SetFile("{Y-m-d}.log")
-	l.logs.Info(l.ctx, text...)
-}
-func (l *Logs) LogError(text ...interface{}) {
-	l.logs.SetFile("{Y-m-d}-error.log")
-	l.logs.Error(l.ctx, text...)
-}
-func (l *Logs) LogDebug(text ...interface{}) {
-	l.logs.SetFile("{Y-m-d}-debug.log")
-	l.logs.Debug(l.ctx, text...)
-}
