@@ -221,6 +221,13 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 }
 
 func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
+	_ = g.Log().SetConfig(glog.Config{
+		RotateSize:  1024 * 1024 * 1024 * 2,
+		Path:        gfile.Pwd() + "/logs",
+		Level:       glog.LEVEL_ALL,
+		StdoutPrint: true,
+		File:        "{Y-m-d}.log",
+	})
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
