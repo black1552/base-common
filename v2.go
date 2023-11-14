@@ -220,24 +220,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(ctx context.Context, address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
-	logs := new(Logs)
-	logs.logs = glog.New()
-	logs.ctx = ctx
-	logPath := gfile.Pwd() + "/logs"
-	if !gfile.IsDir(logPath) {
-		err := gfile.Mkdir(logPath)
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	logs.logs.SetStack(true)
-	logs.logs.SetStdoutPrint(true)
-	_ = logs.logs.SetConfig(glog.Config{
-		RotateSize: 1024 * 1024 * 1024 * 2,
-	})
-	_ = logs.logs.SetLevelStr("ALL")
-	_ = logs.logs.SetPath(logPath)
+func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
@@ -292,6 +275,28 @@ func Start(ctx context.Context, address, agent string, maxSessionTime time.Durat
 		})
 	}
 	return s
+}
+
+func Log(ctx context.Context) *Logs {
+	logs := glog.New()
+	logPath := gfile.Pwd() + "/logs"
+	if !gfile.IsDir(logPath) {
+		err := gfile.Mkdir(logPath)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	logs.SetStack(true)
+	logs.SetStdoutPrint(true)
+	_ = logs.SetConfig(glog.Config{
+		RotateSize: 1024 * 1024 * 1024 * 2,
+	})
+	_ = logs.SetLevelStr("ALL")
+	_ = logs.SetPath(logPath)
+	return &Logs{
+		logs: glog.New(),
+		ctx:  ctx,
+	}
 }
 
 func (l *Logs) LogInfo(text ...interface{}) {
