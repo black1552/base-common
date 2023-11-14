@@ -296,13 +296,13 @@ func Start(ctx context.Context, address, agent string, maxSessionTime time.Durat
 
 func (l *Logs) LogInfo(text ...interface{}) {
 	l.logs.SetFile("{Y-m-d}.log")
-	l.logs.Info(ctx, text...)
+	l.logs.Info(l.ctx, text...)
 }
 func (l *Logs) LogError(text ...interface{}) {
 	l.logs.SetFile("{Y-m-d}-error.log")
-	l.logs.Error(ctx, text...)
+	l.logs.Error(l.ctx, text...)
 }
 func (l *Logs) LogDebug(text ...interface{}) {
 	l.logs.SetFile("{Y-m-d}-debug.log")
-	l.logs.Debug(ctx, text...)
+	l.logs.Debug(l.ctx, text...)
 }
