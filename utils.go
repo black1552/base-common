@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -55,34 +54,34 @@ var (
 	ctx context.Context
 )
 
-func init() {
-	ctx = gctx.New()
-	log = glog.New()
-	logPath := gfile.Pwd() + "/logs"
-	if !gfile.IsDir(logPath) {
-		err := gfile.Mkdir(logPath)
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	log.SetStack(true)
-	log.SetStdoutPrint(true)
-	_ = log.SetConfig(glog.Config{
-		RotateSize: 1024 * 1024 * 1024 * 2,
-	})
-	_ = log.SetLevelStr("ALL")
-	_ = log.SetPath(logPath)
-}
+//func initLog(context context.Context) {
+//	ctx = context
+//	log = glog.New()
+//	logPath := gfile.Pwd() + "/logs"
+//	if !gfile.IsDir(logPath) {
+//		err := gfile.Mkdir(logPath)
+//		if err != nil {
+//			panic(err.Error())
+//		}
+//	}
+//	log.SetStack(true)
+//	log.SetStdoutPrint(true)
+//	_ = log.SetConfig(glog.Config{
+//		RotateSize: 1024 * 1024 * 1024 * 2,
+//	})
+//	_ = log.SetLevelStr("ALL")
+//	_ = log.SetPath(logPath)
+//}
 
-func LogInfo(text ...interface{}) {
-	log.SetFile("{Y-m-d}.log")
-	log.Info(ctx, text...)
-}
-func LogError(text ...interface{}) {
-	log.SetFile("{Y-m-d}-error.log")
-	log.Error(ctx, text...)
-}
-func LogDebug(text ...interface{}) {
-	log.SetFile("{Y-m-d}-debug.log")
-	log.Debug(ctx, text...)
-}
+//func LogInfo(text ...interface{}) {
+//	log.SetFile("{Y-m-d}.log")
+//	log.Info(ctx, text...)
+//}
+//func LogError(text ...interface{}) {
+//	log.SetFile("{Y-m-d}-error.log")
+//	log.Error(ctx, text...)
+//}
+//func LogDebug(text ...interface{}) {
+//	log.SetFile("{Y-m-d}-debug.log")
+//	log.Debug(ctx, text...)
+//}

@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"time"
 )
@@ -21,6 +22,11 @@ type Json struct {
 type ApiRes struct {
 	ctx  context.Context
 	json *Json
+}
+
+type Logs struct {
+	logs *glog.Logger
+	ctx  context.Context
 }
 
 func Success(ctx context.Context) *ApiRes {
@@ -214,7 +220,24 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
+func Start(ctx context.Context, address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
+	logs := new(Logs)
+	logs.logs = glog.New()
+	logs.ctx = ctx
+	logPath := gfile.Pwd() + "/logs"
+	if !gfile.IsDir(logPath) {
+		err := gfile.Mkdir(logPath)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	logs.logs.SetStack(true)
+	logs.logs.SetStdoutPrint(true)
+	_ = logs.logs.SetConfig(glog.Config{
+		RotateSize: 1024 * 1024 * 1024 * 2,
+	})
+	_ = logs.logs.SetLevelStr("ALL")
+	_ = logs.logs.SetPath(logPath)
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
@@ -269,4 +292,17 @@ func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skip
 		})
 	}
 	return s
+}
+
+func (l *Logs) LogInfo(text ...interface{}) {
+	l.logs.SetFile("{Y-m-d}.log")
+	l.logs.Info(ctx, text...)
+}
+func (l *Logs) LogError(text ...interface{}) {
+	l.logs.SetFile("{Y-m-d}-error.log")
+	l.logs.Error(ctx, text...)
+}
+func (l *Logs) LogDebug(text ...interface{}) {
+	l.logs.SetFile("{Y-m-d}-debug.log")
+	l.logs.Debug(ctx, text...)
 }
