@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
+	"os"
 	"time"
 )
 
@@ -194,8 +195,7 @@ func CreateFileDir() error {
 	return nil
 }
 
-const Config = `
-database:
+const Config = `database:
 	default:
 		host: "127.0.0.1"
 		port: "3306"
@@ -224,11 +224,16 @@ server:
 	fileServerEnabled: true
 `
 
+var ConfigPath = gfile.Pwd() + "/manifest/config.yaml"
+
 func CreateConfig() {
-	path := gfile.Pwd() + "/manifest/config.yaml"
 	config := fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
-	if !gfile.Exists(path) {
-		_ = gfile.PutContents(path, config)
+	if !gfile.Exists(ConfigPath) {
+		file, err := os.Create(ConfigPath)
+		if err != nil {
+			panic(err)
+		}
+		_, _ = file.Write([]byte(config))
 	}
 }
 
@@ -259,7 +264,6 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 }
 
 func Start(ctx context.Context, address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
-	CreateConfig()
 	s := g.Server()
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
