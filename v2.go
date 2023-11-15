@@ -259,6 +259,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 }
 
 func Start(ctx context.Context, address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
+	CreateConfig()
 	s := g.Server()
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
