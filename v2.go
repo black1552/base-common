@@ -10,7 +10,6 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
-	"os"
 	"time"
 )
 
@@ -224,18 +223,7 @@ server:
 	fileServerEnabled: true
 `
 
-var ConfigPath = gfile.Pwd() + "/manifest/config.yaml"
-
-func CreateConfig() {
-	config := fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
-	if !gfile.Exists(ConfigPath) {
-		file, err := os.Create(ConfigPath)
-		if err != nil {
-			panic(err)
-		}
-		_, _ = file.Write([]byte(config))
-	}
-}
+var ConfigPath = gfile.Pwd() + "/config/config.yaml"
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
 	cfg := gcfg.Instance()
