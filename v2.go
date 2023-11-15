@@ -10,6 +10,8 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
+	"os"
 	"time"
 )
 
@@ -194,7 +196,27 @@ func CreateFileDir() error {
 	return nil
 }
 
+const Config = `
+database:
+	default:
+		host: "127.0.0.1"
+		port: "3306"
+		user: ""
+		pass: ""
+		name: ""
+		type: "mysql"
+		debug: false
+		charset: "utf8mb4"
+		createdAt: "create_time"
+		updatedAt: "update_time"
+		timezone: "local"
+`
+
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
+	path := gfile.Pwd() + "/manifest/config.yaml"
+	if !debug {
+		_ = os.WriteFile(path, gconv.Bytes(Config), os.ModePerm)
+	}
 	cfg := gcfg.Instance()
 	for {
 		cfgBase, _ := cfg.Get(ctx, "database")
@@ -221,13 +243,6 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 }
 
 func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
-	_ = g.Log().SetConfig(glog.Config{
-		RotateSize:  1024 * 1024 * 1024 * 2,
-		Path:        gfile.Pwd() + "/logs",
-		Level:       glog.LEVEL_ALL,
-		StdoutPrint: true,
-		File:        "{Y-m-d}.log",
-	})
 	s := g.Server()
 	s.SetAddr(address)
 	s.SetDumpRouterMap(false)
