@@ -239,12 +239,6 @@ func CreateConfig() {
 }
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
-	path := gfile.Pwd() + "/manifest/config.yaml"
-	err := os.WriteFile(path, gconv.Bytes(Config), os.ModePerm)
-	if err != nil {
-		panic(err.Error())
-	}
-	//}
 	cfg := gcfg.Instance()
 	for {
 		cfgBase, _ := cfg.Get(ctx, "database")
