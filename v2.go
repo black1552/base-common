@@ -7,9 +7,11 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcfg"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/sirupsen/logrus"
 	"os"
 	"time"
@@ -292,7 +294,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(isApi bool, skipUrl string) *ghttp.Server {
+func Start(isApi bool) *ghttp.Server {
 	s := g.Server()
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
@@ -313,8 +315,9 @@ func Start(isApi bool, skipUrl string) *ghttp.Server {
 		s.SetSwaggerPath("/swagger")
 	}
 	s.Use(MiddlewareError)
+	skipUrl, _ := g.Cfg().Get(gctx.New(), "skipUrl")
 	s.BindHandler("/", func(r *ghttp.Request) {
-		r.Response.RedirectTo(skipUrl)
+		r.Response.RedirectTo(gconv.String(skipUrl))
 	})
 	return s
 }
