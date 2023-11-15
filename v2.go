@@ -249,9 +249,9 @@ var ConfigPath = gfile.Pwd() + "/config/config.yaml"
 func ConfigInit() {
 	logrus.SetLevel(logrus.DebugLevel)
 	config := ConfigToString()
-	logrus.Infoln("isFile config file", gfile.IsFile(ConfigPath))
+	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
-		logrus.Infoln("create config file", ConfigPath)
+		logrus.Infoln("正在创建配置文件", ConfigPath)
 		err := os.Mkdir(gfile.Pwd()+"/config", os.ModePerm)
 		if err != nil {
 			logrus.Infoln("文件夹创建失败！")
@@ -263,6 +263,7 @@ func ConfigInit() {
 			panic(err)
 		}
 		_ = gfile.PutContents(ConfigPath, config)
+		logrus.Infoln("配置文件创建成功！")
 	}
 }
 
