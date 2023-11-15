@@ -208,7 +208,6 @@ const Config = `database:
     charset: "utf8mb4"
     createdAt: "create_time"
     updatedAt: "update_time"
-    timezone: "local"
 skipUrl: "/dist/index.html"
 server:
   address: "127.0.0.1:8080"
