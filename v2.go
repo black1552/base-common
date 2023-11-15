@@ -197,33 +197,33 @@ func CreateFileDir() error {
 }
 
 const Config = `database:
-	default:
-		host: "127.0.0.1"
-		port: "3306"
-		user: ""
-		pass: ""
-		name: ""
-		type: "mysql"
-		debug: false
-		charset: "utf8mb4"
-		createdAt: "create_time"
-		updatedAt: "update_time"
-		timezone: "local"
+  default:
+    host: "127.0.0.1"
+    port: "3306"
+    user: ""
+    pass: ""
+    name: ""
+    type: "mysql"
+    debug: false
+    charset: "utf8mb4"
+    createdAt: "create_time"
+    updatedAt: "update_time"
+    timezone: "local"
 skipUrl: "/dist/index.html"
 server:
-	address: "127.0.0.1:8080"
-	serverRoot: "%s"
-	logPath: "%s"
-	sessionPath: "%s"
-	sessionIdName: "%s"
-	accessLogEnabled: true
-	errorLogEnabled: true
-	DumpRouterMap: false
-	maxHeaderBytes: "20KB"
-	clientMaxBodySize: "200MB"
-	searchPaths: ["%s"]
-	fileServerEnabled: true
-	serverAgent: "go"
+  address: "127.0.0.1:8080"
+  serverRoot: "%s"
+  logPath: "%s"
+  sessionPath: "%s"
+  sessionIdName: "%s"
+  accessLogEnabled: true
+  errorLogEnabled: true
+  DumpRouterMap: false
+  maxHeaderBytes: "20KB"
+  clientMaxBodySize: "200MB"
+  searchPaths: ["%s"]
+  fileServerEnabled: true
+  serverAgent: "go"
 gfcli:
   build:
     name: "checkRisk"
