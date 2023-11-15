@@ -210,13 +210,41 @@ database:
 		createdAt: "create_time"
 		updatedAt: "update_time"
 		timezone: "local"
+skipUrl: "/dist/index.html"
+server:
+	address: ""
+	serverRoot: "%s"
+	logPath: "%s"
+	sessionPath: "%s"
+	sessionIdName: "%s"
+	accessLogEnabled: true
+	errorLogEnabled: true
+	DumpRouterMap: false
+	maxHeaderBytes: "20KB"
+	clientMaxBodySize: "200MB"
+	searchPaths: ["%s"]
+	fileServerEnabled: true
 `
+
+func CreateConfig() {
+	path := gfile.Pwd() + "/manifest/config.yaml"
+	if gfile.Exists(path) {
+		return
+	}
+	config := fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
+	err := os.WriteFile(path, gconv.Bytes(config), os.ModePerm)
+	if err != nil {
+		panic(err.Error())
+	}
+}
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
 	path := gfile.Pwd() + "/manifest/config.yaml"
-	if !debug {
-		_ = os.WriteFile(path, gconv.Bytes(Config), os.ModePerm)
+	err := os.WriteFile(path, gconv.Bytes(Config), os.ModePerm)
+	if err != nil {
+		panic(err.Error())
 	}
+	//}
 	cfg := gcfg.Instance()
 	for {
 		cfgBase, _ := cfg.Get(ctx, "database")
@@ -242,10 +270,8 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
+func Start(ctx context.Context, address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
-	s.SetAddr(address)
-	s.SetDumpRouterMap(false)
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
 		err := gfile.Mkdir(path)
@@ -259,8 +285,14 @@ func Start(address, agent string, maxSessionTime time.Duration, isApi bool, skip
 		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/image")
 		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/js")
 	}
-	s.SetServerRoot(gfile.Pwd() + "/resource")
-	s.AddSearchPath(path)
+	cfg := gcfg.Instance()
+	server, _ := cfg.Get(ctx, "server")
+	if server == nil {
+		s.SetAddr(address)
+		s.SetDumpRouterMap(false)
+		s.SetServerRoot(gfile.Pwd() + "/resource")
+		s.AddSearchPath(path)
+	}
 	s.AddStaticPath("/upload", path)
 	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
 	if err != nil {
