@@ -212,7 +212,7 @@ database:
 		timezone: "local"
 skipUrl: "/dist/index.html"
 server:
-	address: ""
+	address: ":8080"
 	serverRoot: "%s"
 	logPath: "%s"
 	sessionPath: "%s"
@@ -228,8 +228,8 @@ server:
 
 func CreateConfig() {
 	path := gfile.Pwd() + "/manifest/config.yaml"
-	if gfile.Exists(path) {
-		return
+	if !gfile.Exists(path) {
+		_ = gfile.Mkdir(path)
 	}
 	config := fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
 	err := os.WriteFile(path, gconv.Bytes(config), os.ModePerm)
