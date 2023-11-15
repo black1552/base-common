@@ -10,6 +10,8 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/sirupsen/logrus"
+	"os"
 	"time"
 )
 
@@ -209,7 +211,7 @@ const Config = `database:
 		timezone: "local"
 skipUrl: "/dist/index.html"
 server:
-	address: ":8080"
+	address: "127.0.0.1:8080"
 	serverRoot: "%s"
 	logPath: "%s"
 	sessionPath: "%s"
@@ -221,9 +223,47 @@ server:
 	clientMaxBodySize: "200MB"
 	searchPaths: ["%s"]
 	fileServerEnabled: true
+gfcli:
+  build:
+    name: "checkRisk"
+    arch: "amd64"
+    system: "linux"
+    mod: "none"
+    packSrc: "manifest"
+    packDst: "internal/packed/packed.go"
+    version: "v1.0.0001"
+    output: "./bin"
+  gen:
+    dao:
+      - link: "mysql:root:123456@tcp(127.0.0.1:3306)/check_risk"
+        jsonCase: "CamelLower"
 `
 
+func ConfigToString() string {
+	return fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
+}
+
 var ConfigPath = gfile.Pwd() + "/config/config.yaml"
+
+func ConfigInit() {
+	logrus.SetLevel(logrus.DebugLevel)
+	config := ConfigToString()
+	logrus.Infoln("isFile config file", gfile.IsFile(ConfigPath))
+	if !gfile.IsFile(ConfigPath) {
+		logrus.Infoln("create config file", ConfigPath)
+		err := os.Mkdir(gfile.Pwd()+"/config", os.ModePerm)
+		if err != nil {
+			logrus.Infoln("文件夹创建失败！")
+			panic(err)
+		}
+		_, err = os.Create(ConfigPath)
+		if err != nil {
+			logrus.Infoln("文件创建失败！！！")
+			panic(err)
+		}
+		_ = gfile.PutContents(ConfigPath, config)
+	}
+}
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
 	cfg := gcfg.Instance()
@@ -251,7 +291,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(ctx context.Context, address, agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
+func Start(agent string, maxSessionTime time.Duration, isApi bool, skipUrl string, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
@@ -266,14 +306,9 @@ func Start(ctx context.Context, address, agent string, maxSessionTime time.Durat
 		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/image")
 		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/js")
 	}
-	cfg := gcfg.Instance()
-	server, _ := cfg.Get(ctx, "server")
-	if server == nil {
-		s.SetAddr(address)
-		s.SetDumpRouterMap(false)
-		s.SetServerRoot(gfile.Pwd() + "/resource")
-		s.AddSearchPath(path)
-	}
+	s.SetDumpRouterMap(false)
+	s.SetServerRoot(gfile.Pwd() + "/resource")
+	s.AddSearchPath(path)
 	s.AddStaticPath("/upload", path)
 	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
 	if err != nil {
