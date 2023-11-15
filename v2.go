@@ -10,7 +10,6 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
-	"os"
 	"time"
 )
 
@@ -229,17 +228,7 @@ func CreateConfig() {
 	path := gfile.Pwd() + "/manifest/config.yaml"
 	config := fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
 	if !gfile.Exists(path) {
-		file, _ := gfile.OpenFile(path, os.O_CREATE|os.O_WRONLY, os.ModePerm)
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-				panic(err)
-			}
-		}(file)
-		_, err := file.Write([]byte(config))
-		if err != nil {
-			panic(err.Error())
-		}
+		_ = gfile.PutContents(path, config)
 	}
 }
 
