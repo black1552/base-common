@@ -298,16 +298,13 @@ func Start(isApi bool) *ghttp.Server {
 	s := g.Server()
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
-		err := gfile.Mkdir(path)
-		if err != nil {
-			panic(err.Error())
-		}
-		_ = gfile.Mkdir(gfile.Pwd() + "/resource/template")
-		_ = gfile.Mkdir(gfile.Pwd() + "/resource/scripts")
-		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/html")
-		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/css")
-		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/image")
-		_ = gfile.Mkdir(gfile.Pwd() + "/resource/public/resource/js")
+		_ = os.Mkdir(path, os.ModePerm)
+		_ = os.Mkdir(gfile.Pwd()+"/resource/template", os.ModePerm)
+		_ = os.Mkdir(gfile.Pwd()+"/resource/scripts", os.ModePerm)
+		_ = os.Mkdir(gfile.Pwd()+"/resource/public/html", os.ModePerm)
+		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/css", os.ModePerm)
+		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/image", os.ModePerm)
+		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/js", os.ModePerm)
 	}
 	s.AddStaticPath("/upload", path)
 	if isApi {
