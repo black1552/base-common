@@ -245,7 +245,7 @@ func ConfigToString() string {
 	return fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
 }
 
-var ConfigPath = gfile.Pwd() + "/config/config.yaml"
+var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
 
 func ConfigInit() {
 	logrus.SetLevel(logrus.DebugLevel)
@@ -253,7 +253,7 @@ func ConfigInit() {
 	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
 		logrus.Infoln("正在创建配置文件", ConfigPath)
-		err := os.Mkdir(gfile.Pwd()+"/config", os.ModePerm)
+		err := os.Mkdir(gfile.Pwd()+"/manifest/config", os.ModePerm)
 		if err != nil {
 			logrus.Infoln("文件夹创建失败！")
 			panic(err)
