@@ -219,7 +219,7 @@ server:
   sessionIdName: "%s"
   accessLogEnabled: true
   errorLogEnabled: true
-  DumpRouterMap: false
+  dumpRouterMap: false
   maxHeaderBytes: "20KB"
   clientMaxBodySize: "200MB"
   searchPaths: ["%s"]
