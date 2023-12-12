@@ -231,14 +231,13 @@ gfcli:
 `
 
 func ConfigToString() string {
-	return fmt.Sprintf(Config, gfile.Pwd()+"/resource", gfile.Pwd()+"/resource/log", gfile.Pwd()+"/resource/session", "lcSession", gfile.Pwd()+"/resource/public/upload")
+	return fmt.Sprintf(Config)
 }
 
 var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
 
 func ConfigInit() {
 	logrus.SetLevel(logrus.DebugLevel)
-	config := ConfigToString()
 	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
 		logrus.Infoln("正在创建配置文件", ConfigPath)
@@ -252,7 +251,7 @@ func ConfigInit() {
 			logrus.Infoln("文件创建失败！！！")
 			panic(err)
 		}
-		_ = gfile.PutContents(ConfigPath, config)
+		_ = gfile.PutContents(ConfigPath, Config)
 		logrus.Infoln("配置文件创建成功！")
 	}
 }
