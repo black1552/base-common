@@ -5,7 +5,6 @@ import (
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/nfnt/resize"
 	"image/jpeg"
@@ -50,7 +49,6 @@ func InStrArray(ext string, code int) bool {
 }
 
 var (
-	log *glog.Logger
 	ctx context.Context
 )
 

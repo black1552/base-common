@@ -214,6 +214,16 @@ database:
     createdAt: "create_time"
     updatedAt: "update_time"
 skipUrl: "/dist/index.html"
+logger:
+  path:                  "./log/"           # 日志文件路径。默认为空，表示关闭，仅输出到终端
+  file:                  "{Y-m-d}.log"         # 日志文件格式。默认为"{Y-m-d}.log"
+  level:                 "all"                 # 日志输出级别
+  timeFormat:            "2006-01-02T15:04:05" # 自定义日志输出的时间格式，使用Golang标准的时间格式配置
+  ctxKeys:               []                    # 自定义Context上下文变量名称，自动打印Context的变量到日志中。默认为空
+  header:                true                  # 是否打印日志的头信息。默认true
+  stdout:                true                  # 日志是否同时输出到终端。默认true
+  stdoutColorDisabled:   false                 # 关闭终端的颜色打印。默认开启
+  writerColorEnable:     true                 # 日志文件是否带上颜色。默认false，表示不带颜色
 gfcli:
   build:
     name: "checkRisk"
@@ -235,6 +245,7 @@ func ConfigToString() string {
 }
 
 var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
+var log *glog.Logger
 
 func ConfigInit() {
 	logrus.SetLevel(logrus.DebugLevel)
@@ -247,7 +258,18 @@ func ConfigInit() {
 		logrus.Infoln("配置文件创建成功！")
 	} else {
 		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
+		log = g.Log()
 	}
+}
+
+func LogDeBug(content ...interface{}) {
+	log.Debug(gctx.New(), content)
+}
+func LogInfo(content ...interface{}) {
+	log.Info(gctx.New(), content)
+}
+func LogError(content ...interface{}) {
+	log.Error(gctx.New(), content)
 }
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
