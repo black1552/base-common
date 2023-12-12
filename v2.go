@@ -256,6 +256,7 @@ func ConfigInit() {
 		_ = gfile.PutContents(ConfigPath, Config)
 		logrus.Infoln("配置文件创建成功！")
 	}
+	gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
 }
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
@@ -285,6 +286,7 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 }
 
 func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
+	//var s *ghttp.Server
 	s := g.Server()
 	s.SetDumpRouterMap(false)
 	path := gfile.Pwd() + "/resource/public/upload"
