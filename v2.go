@@ -241,22 +241,13 @@ func ConfigInit() {
 	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
 		logrus.Infoln("正在创建配置文件", ConfigPath)
-		if !gfile.IsDir(gfile.Pwd() + "/manifest/config") {
-			err := os.Mkdir(gfile.Pwd()+"/manifest/config", os.ModePerm)
-			if err != nil {
-				logrus.Infoln("文件夹创建失败！")
-				panic(err)
-			}
-		}
-		_, err := os.Create(ConfigPath)
-		if err != nil {
-			logrus.Infoln("文件创建失败！！！")
-			panic(err)
-		}
+		_, _ = gfile.Create(ConfigPath)
+		logrus.Infoln("正在写入配置文件", ConfigPath)
 		_ = gfile.PutContents(ConfigPath, Config)
 		logrus.Infoln("配置文件创建成功！")
+	} else {
+		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
 	}
-	gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
 }
 
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
