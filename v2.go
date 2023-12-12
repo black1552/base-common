@@ -241,12 +241,14 @@ func ConfigInit() {
 	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
 		logrus.Infoln("正在创建配置文件", ConfigPath)
-		err := os.Mkdir(gfile.Pwd()+"/manifest/config", os.ModePerm)
-		if err != nil {
-			logrus.Infoln("文件夹创建失败！")
-			panic(err)
+		if !gfile.IsDir(gfile.Pwd() + "/manifest/config") {
+			err := os.Mkdir(gfile.Pwd()+"/manifest/config", os.ModePerm)
+			if err != nil {
+				logrus.Infoln("文件夹创建失败！")
+				panic(err)
+			}
 		}
-		_, err = os.Create(ConfigPath)
+		_, err := os.Create(ConfigPath)
 		if err != nil {
 			logrus.Infoln("文件创建失败！！！")
 			panic(err)
