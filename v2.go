@@ -198,7 +198,10 @@ func CreateFileDir() error {
 	return nil
 }
 
-const Config = `database:
+const Config = `server:
+  default:
+    address: "127.0.0.1:8080"
+database:
   default:
     host: "127.0.0.1"
     port: "3306"
@@ -211,20 +214,6 @@ const Config = `database:
     createdAt: "create_time"
     updatedAt: "update_time"
 skipUrl: "/dist/index.html"
-server:
-  address: "127.0.0.1:8080"
-  serverRoot: "%s"
-  logPath: "%s"
-  sessionPath: "%s"
-  sessionIdName: "%s"
-  accessLogEnabled: true
-  errorLogEnabled: true
-  dumpRouterMap: false
-  maxHeaderBytes: "20KB"
-  clientMaxBodySize: "200MB"
-  searchPaths: ["%s"]
-  fileServerEnabled: true
-  serverAgent: "go"
 gfcli:
   build:
     name: "checkRisk"
@@ -294,8 +283,9 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
-func Start(isApi bool) *ghttp.Server {
+func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
 	s := g.Server()
+	s.SetDumpRouterMap(false)
 	path := gfile.Pwd() + "/resource/public/upload"
 	if !gfile.IsDir(path) {
 		_ = os.Mkdir(path, os.ModePerm)
@@ -306,10 +296,36 @@ func Start(isApi bool) *ghttp.Server {
 		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/image", os.ModePerm)
 		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/js", os.ModePerm)
 	}
+	s.SetServerRoot(gfile.Pwd() + "/resource")
+	s.AddSearchPath(path)
 	s.AddStaticPath("/upload", path)
+	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
+	if err != nil {
+		fmt.Println(err)
+	}
+	s.SetLogLevel("all")
+	s.SetLogStdout(false)
+	if len(maxBody) > 0 {
+		s.SetClientMaxBodySize(maxBody[0])
+	} else {
+		s.SetClientMaxBodySize(200 * 1024 * 1024)
+	}
+	s.SetFormParsingMemory(50 * 1024 * 1024)
 	if isApi {
 		s.SetOpenApiPath("/api.json")
 		s.SetSwaggerPath("/swagger")
+	}
+	s.SetMaxHeaderBytes(1024 * 20)
+	s.SetErrorStack(true)
+	s.SetSessionIdName("zrSession")
+	s.SetAccessLogEnabled(true)
+	s.SetSessionMaxAge(maxSessionTime)
+	err = s.SetConfigWithMap(g.Map{
+		"sessionPath": gfile.Pwd() + "/resource/session",
+		"serverAgent": agent,
+	})
+	if err != nil {
+		fmt.Println(err)
 	}
 	s.Use(MiddlewareError)
 	skipUrl, _ := g.Cfg().Get(gctx.New(), "skipUrl")
