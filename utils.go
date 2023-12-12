@@ -2,6 +2,8 @@ package v2
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -36,6 +38,13 @@ func Compress(filePath string) string {
 	}
 	_ = gfile.Remove(filePath)
 	return sta[0] + "-cop." + sta[1]
+}
+
+func Sha256(src string) string {
+	m := sha256.New()
+	m.Write([]byte(src))
+	res := hex.EncodeToString(m.Sum(nil))
+	return res
 }
 
 func InStrArray(ext string, code int) bool {
