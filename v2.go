@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gogf/gf/v2/database/gdb"
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/encoding/gyaml"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcfg"
@@ -198,6 +200,65 @@ func CreateFileDir() error {
 	return nil
 }
 
+const BaseConfig = `{
+"server":{
+	"default":{
+		"address":"127.0.0.1:8080",
+		"logPath":"./log/",
+		"logStdout":true,
+		"errorStack":true,
+		"errorLogEnabled":true,
+		"errorLogPattern":"error-{Ymd}.log",
+		"accessLogEnable":true,
+		"accessLogPattern":"access-{Ymd}.log"
+	}
+},
+"database":{
+	"default":{
+		"host":"127.0.0.1",
+		"port":"3306",
+		"user":"",
+		"pass":"",
+		"name":"",
+		"type":"mysql",
+		"debug":false,
+		"charset":"utf8mb4",
+		"createdAt":"create_time",
+		"updatedAt":"update_time"
+	}
+},
+"skipUrl":"/dist/index.html",
+"logger":{
+	"path":"./log/",
+	"file":"{Y-m-d}.log",
+	"level":"all",
+	"timeFormat":"2006-01-02 15:04:05",
+	"ctxKeys":[],
+	"header":true,
+	"stdout":true,
+	"stdoutColorDisabled":false,
+	"writerColorEnable":true
+},
+"gfcli":{
+	"build":{
+		"name":"checkRisk",
+		"arch":"amd64",
+		"system":"linux",
+		"mod":"none",
+		"packSrc":"manifest",
+		"packDst":"internal/packed/packed.go",
+		"version":"v1.0.0001",
+		"output":"./bin"
+	},
+	"gen":{
+		"dao":{
+			"- link":"mysql:root:123456@tcp(127.0.0.1:3306)/check_risk",
+			"jsonCase":"CamelLower"
+		}
+	}
+}
+}`
+
 const Config = `server:
   default:
     address: "127.0.0.1:8080"
@@ -255,13 +316,22 @@ var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
 var log *glog.Logger
 
 func ConfigInit() {
+	json, err := gjson.Decode(BaseConfig)
+	if err != nil {
+		g.Log().Error(gctx.New(), "配置模板解析失败", err)
+	}
+	yaml, err := gyaml.Encode(json)
+	if err != nil {
+		g.Log().Error(gctx.New(), "转换yaml失败", err)
+	}
+
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
 		logrus.Infoln("正在创建配置文件", ConfigPath)
 		_, _ = gfile.Create(ConfigPath)
 		logrus.Infoln("正在写入配置文件", ConfigPath)
-		_ = gfile.PutContents(ConfigPath, Config)
+		_ = gfile.PutContents(ConfigPath, gconv.String(yaml))
 		logrus.Infoln("配置文件创建成功！")
 	} else {
 		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
