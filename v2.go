@@ -112,9 +112,9 @@ func ResponseJson(ctx context.Context, data interface{}) {
 }
 
 type PageSize struct {
-	CurrentPage int         `json:"current_page"`
+	CurrentPage int         `json:"currentPage"`
 	Data        interface{} `json:"data"`
-	LastPage    int         `json:"last_page"`
+	LastPage    int         `json:"lastPage"`
 	PerPage     int         `json:"per_page"`
 	Total       int         `json:"total"`
 }
@@ -201,6 +201,13 @@ func CreateFileDir() error {
 const Config = `server:
   default:
     address: "127.0.0.1:8080"
+	logPath: "./log/"                 # 日志文件存储目录路径，建议使用绝对路径。默认为空，表示关闭
+    logStdout: true               # 日志是否输出到终端。默认为true
+    errorStack: true               # 当Server捕获到异常时是否记录堆栈信息到日志中。默认为true
+    errorLogEnabled: true               # 是否记录异常日志信息到日志中。默认为true
+    errorLogPattern: "error-{Ymd}.log"  # 异常错误日志文件格式。默认为"error-{Ymd}.log"
+    accessLogEnabled: true              # 是否记录访问日志。默认为false
+    accessLogPattern: "access-{Ymd}.log" # 访问日志文件格式。默认为"access-{Ymd}.log"
 database:
   default:
     host: "127.0.0.1"
