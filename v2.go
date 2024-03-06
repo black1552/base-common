@@ -233,6 +233,7 @@ const BaseConfig = `{
 "openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
 "openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
 "openAPIName": "",
+"openAPIVersion":"v1.0"
 "logger":{
 	"path":"./log/",
 	"file":"{Y-m-d}.log",
