@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/encoding/gyaml"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/net/goai"
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -282,6 +283,10 @@ database:
     createdAt: "create_time"
     updatedAt: "update_time"
 skipUrl: "/dist/index.html"
+openAPITitle: ""
+openAPIDescription: "Api列表 包含各端接口信息 字段注释 枚举说明"
+openAPIUrl: "https://panel.magicany.cc:8888/btpanel"
+openAPIName: ""
 logger:
   path:                  "./log/"           # 日志文件路径。默认为空，表示关闭，仅输出到终端
   file:                  "{Y-m-d}.log"         # 日志文件格式。默认为"{Y-m-d}.log"
@@ -310,6 +315,44 @@ gfcli:
 
 func ConfigToString() string {
 	return fmt.Sprintf(Config)
+}
+
+func enhanceOpenAPIDoc(s *ghttp.Server) {
+	cfg := gcfg.Instance()
+	apiTitle, err := cfg.Get(gctx.New(), "openAPITitle", "Api列表")
+	if err != nil {
+		panic(err)
+	}
+	apiDes, err := cfg.Get(gctx.New(), "openAPIDescription", "Api列表 包含各端接口信息 字段注释 枚举说明")
+	if err != nil {
+		panic(err)
+	}
+	apiUrl, err := cfg.Get(gctx.New(), "openAPIUrl", "https://panel.magicany.cc:8888/btpanel")
+	if err != nil {
+		panic(err)
+	}
+	apiName, err := cfg.Get(gctx.New(), "openAPIName", "Api列表")
+	if err != nil {
+		panic(err)
+	}
+	openapi := s.GetOpenApi()
+	openapi.Config.CommonResponse = ghttp.DefaultHandlerResponse{}
+	openapi.Config.CommonResponseDataField = `Data`
+
+	// API description.
+	openapi.Info = goai.Info{
+		Title:       gconv.String(apiTitle),
+		Description: gconv.String(apiDes),
+		Contact: &goai.Contact{
+			Name: gconv.String(apiName),
+			URL:  gconv.String(apiUrl),
+		},
+		License: &goai.License{
+			Name: "马国栋",
+			URL:  "https://panel.magicany.cc:8888/btpanel",
+		},
+		Version: "v1.0",
+	}
 }
 
 var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
@@ -425,5 +468,6 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.BindHandler("/", func(r *ghttp.Request) {
 		r.Response.RedirectTo(gconv.String(skipUrl))
 	})
+	enhanceOpenAPIDoc(s)
 	return s
 }
