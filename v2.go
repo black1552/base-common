@@ -283,6 +283,10 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 	if err != nil {
 		panic(err)
 	}
+	version, err := cfg.Get(gctx.New(), "openAPIVersion", "Api列表")
+	if err != nil {
+		panic(err)
+	}
 	openapi := s.GetOpenApi()
 	openapi.Config.CommonResponse = ghttp.DefaultHandlerResponse{}
 	openapi.Config.CommonResponseDataField = `Data`
@@ -299,7 +303,7 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 			Name: "马国栋",
 			URL:  "https://panel.magicany.cc:8888/btpanel",
 		},
-		Version: "v1.0",
+		Version: gconv.String(version),
 	}
 }
 
