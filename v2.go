@@ -229,6 +229,10 @@ const BaseConfig = `{
 	}
 },
 "skipUrl":"/dist/index.html",
+"openAPITitle": "",
+"openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
+"openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
+"openAPIName": "",
 "logger":{
 	"path":"./log/",
 	"file":"{Y-m-d}.log",
@@ -259,63 +263,6 @@ const BaseConfig = `{
 	}
 }
 }`
-
-const Config = `server:
-  default:
-    address: "127.0.0.1:8080"
-	logPath: "./log/"                 # 日志文件存储目录路径，建议使用绝对路径。默认为空，表示关闭
-    logStdout: true               # 日志是否输出到终端。默认为true
-    errorStack: true               # 当Server捕获到异常时是否记录堆栈信息到日志中。默认为true
-    errorLogEnabled: true               # 是否记录异常日志信息到日志中。默认为true
-    errorLogPattern: "error-{Ymd}.log"  # 异常错误日志文件格式。默认为"error-{Ymd}.log"
-    accessLogEnabled: true              # 是否记录访问日志。默认为false
-    accessLogPattern: "access-{Ymd}.log" # 访问日志文件格式。默认为"access-{Ymd}.log"
-database:
-  default:
-    host: "127.0.0.1"
-    port: "3306"
-    user: ""
-    pass: ""
-    name: ""
-    type: "mysql"
-    debug: false
-    charset: "utf8mb4"
-    createdAt: "create_time"
-    updatedAt: "update_time"
-skipUrl: "/dist/index.html"
-openAPITitle: ""
-openAPIDescription: "Api列表 包含各端接口信息 字段注释 枚举说明"
-openAPIUrl: "https://panel.magicany.cc:8888/btpanel"
-openAPIName: ""
-logger:
-  path:                  "./log/"           # 日志文件路径。默认为空，表示关闭，仅输出到终端
-  file:                  "{Y-m-d}.log"         # 日志文件格式。默认为"{Y-m-d}.log"
-  level:                 "all"                 # 日志输出级别
-  timeFormat:            "2006-01-02T15:04:05" # 自定义日志输出的时间格式，使用Golang标准的时间格式配置
-  ctxKeys:               []                    # 自定义Context上下文变量名称，自动打印Context的变量到日志中。默认为空
-  header:                true                  # 是否打印日志的头信息。默认true
-  stdout:                true                  # 日志是否同时输出到终端。默认true
-  stdoutColorDisabled:   false                 # 关闭终端的颜色打印。默认开启
-  writerColorEnable:     true                 # 日志文件是否带上颜色。默认false，表示不带颜色
-gfcli:
-  build:
-    name: "checkRisk"
-    arch: "amd64"
-    system: "linux"
-    mod: "none"
-    packSrc: "manifest"
-    packDst: "internal/packed/packed.go"
-    version: "v1.0.0001"
-    output: "./bin"
-  gen:
-    dao:
-      - link: "mysql:root:123456@tcp(127.0.0.1:3306)/check_risk"
-        jsonCase: "CamelLower"
-`
-
-func ConfigToString() string {
-	return fmt.Sprintf(Config)
-}
 
 func enhanceOpenAPIDoc(s *ghttp.Server) {
 	cfg := gcfg.Instance()
