@@ -374,20 +374,20 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	//var s *ghttp.Server
 	s := g.Server()
 	s.SetDumpRouterMap(false)
-	path := fmt.Sprintf("%s%dresource%dpublic%dupload", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator)
+	path := fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator))
 	if !gfile.IsDir(path) {
 		_ = os.Mkdir(path, os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dtemplate", gfile.Pwd(), os.PathSeparator, os.PathSeparator), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dscripts", gfile.Pwd(), os.PathSeparator, os.PathSeparator), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dhtml", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dresource%dcss", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dresource%dimage", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dresource%djs", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
 	}
-	s.SetServerRoot(fmt.Sprintf("%s%dresource", gfile.Pwd(), os.PathSeparator))
+	s.SetServerRoot(fmt.Sprintf("%s%vresource", gfile.Pwd(), string(os.PathSeparator)))
 	s.AddSearchPath(path)
-	s.AddStaticPath(fmt.Sprintf("%dupload", os.PathSeparator), path)
-	err := s.SetLogPath(fmt.Sprintf("%s%dresource%dlog", gfile.Pwd(), os.PathSeparator, os.PathSeparator))
+	s.AddStaticPath(fmt.Sprintf("%vupload", string(os.PathSeparator)), path)
+	err := s.SetLogPath(fmt.Sprintf("%s%vresource%vlog", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -409,7 +409,7 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
 	err = s.SetConfigWithMap(g.Map{
-		"sessionPath": fmt.Sprintf("%s%dresource%dsession", gfile.Pwd(), os.PathSeparator, os.PathSeparator),
+		"sessionPath": fmt.Sprintf("%s%vresource%vsession", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)),
 		"serverAgent": agent,
 	})
 	if err != nil {
