@@ -320,6 +320,17 @@ func ConfigInit() {
 		g.Log().Error(gctx.New(), "转换yaml失败", err)
 	}
 
+	path := fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator))
+	if !gfile.IsDir(path) {
+		_ = os.Mkdir(path, os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+	}
+
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
@@ -375,15 +386,6 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s := g.Server()
 	s.SetDumpRouterMap(false)
 	path := fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator))
-	if !gfile.IsDir(path) {
-		_ = os.Mkdir(path, os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-	}
 	s.SetServerRoot(fmt.Sprintf("%s%vresource", gfile.Pwd(), string(os.PathSeparator)))
 	s.AddSearchPath(path)
 	s.AddStaticPath(fmt.Sprintf("%vupload", string(os.PathSeparator)), path)
