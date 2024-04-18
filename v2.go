@@ -251,7 +251,7 @@ const BaseConfig = `{
 		"arch":"amd64",
 		"system":"linux",
 		"mod":"none",
-		"packSrc":"manifest",
+		"packSrc":"manifest,resource",
 		"packDst":"internal/packed/packed.go",
 		"version":"v1.0.0001",
 		"output":"./bin"
@@ -374,20 +374,20 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	//var s *ghttp.Server
 	s := g.Server()
 	s.SetDumpRouterMap(false)
-	path := gfile.Pwd() + "/resource/public/upload"
+	path := fmt.Sprintf("%s%dresource%dpublic%dupload", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator)
 	if !gfile.IsDir(path) {
 		_ = os.Mkdir(path, os.ModePerm)
-		_ = os.Mkdir(gfile.Pwd()+"/resource/template", os.ModePerm)
-		_ = os.Mkdir(gfile.Pwd()+"/resource/scripts", os.ModePerm)
-		_ = os.Mkdir(gfile.Pwd()+"/resource/public/html", os.ModePerm)
-		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/css", os.ModePerm)
-		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/image", os.ModePerm)
-		_ = os.Mkdir(gfile.Pwd()+"/resource/public/resource/js", os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dtemplate", gfile.Pwd(), os.PathSeparator, os.PathSeparator), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dscripts", gfile.Pwd(), os.PathSeparator, os.PathSeparator), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dhtml", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dresource%dcss", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dresource%dimage", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
+		_ = os.Mkdir(fmt.Sprintf("%s%dresource%dpublic%dresource%djs", gfile.Pwd(), os.PathSeparator, os.PathSeparator, os.PathSeparator, os.PathSeparator), os.ModePerm)
 	}
-	s.SetServerRoot(gfile.Pwd() + "/resource")
+	s.SetServerRoot(fmt.Sprintf("%s%dresource", gfile.Pwd(), os.PathSeparator))
 	s.AddSearchPath(path)
-	s.AddStaticPath("/upload", path)
-	err := s.SetLogPath(gfile.Pwd() + "/resource/log")
+	s.AddStaticPath(fmt.Sprintf("%dupload", os.PathSeparator), path)
+	err := s.SetLogPath(fmt.Sprintf("%s%dresource%dlog", gfile.Pwd(), os.PathSeparator, os.PathSeparator))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -409,7 +409,7 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
 	err = s.SetConfigWithMap(g.Map{
-		"sessionPath": gfile.Pwd() + "/resource/session",
+		"sessionPath": fmt.Sprintf("%s%dresource%dsession", gfile.Pwd(), os.PathSeparator, os.PathSeparator),
 		"serverAgent": agent,
 	})
 	if err != nil {
