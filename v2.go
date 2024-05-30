@@ -320,13 +320,13 @@ func ConfigInit() {
 	}
 
 	if !gfile.IsDir(uploadPath) {
-		_, _ = gfile.Create(uploadPath)
-		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
-		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(uploadPath)
+		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
 	}
 	g.Log().Info(gctx.New(), "正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
