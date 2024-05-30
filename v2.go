@@ -15,8 +15,6 @@ import (
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/sirupsen/logrus"
-	"os"
 	"time"
 )
 
@@ -309,6 +307,7 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 
 var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
 var log *glog.Logger
+var uploadPath = fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator)
 
 func ConfigInit() {
 	json, err := gjson.Decode(BaseConfig)
@@ -320,25 +319,22 @@ func ConfigInit() {
 		g.Log().Error(gctx.New(), "转换yaml失败", err)
 	}
 
-	path := fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator))
-	if !gfile.IsDir(path) {
-		_ = os.Mkdir(path, os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
-		_ = os.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator)), os.ModePerm)
+	if !gfile.IsDir(uploadPath) {
+		_, _ = gfile.Create(uploadPath)
+		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
+		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
+		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
+		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_, _ = gfile.Create(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
 	}
-
-	logrus.SetLevel(logrus.DebugLevel)
-	logrus.Infoln("正在检查配置文件", gfile.IsFile(ConfigPath))
+	g.Log().Info(gctx.New(), "正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
-		logrus.Infoln("正在创建配置文件", ConfigPath)
+		g.Log().Info(gctx.New(), "正在创建配置文件", ConfigPath)
 		_, _ = gfile.Create(ConfigPath)
-		logrus.Infoln("正在写入配置文件", ConfigPath)
+		g.Log().Info(gctx.New(), "正在写入配置文件", ConfigPath)
 		_ = gfile.PutContents(ConfigPath, gconv.String(yaml))
-		logrus.Infoln("配置文件创建成功！")
+		g.Log().Info(gctx.New(), "配置文件创建成功！")
 	} else {
 		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
 		log = g.Log()
@@ -385,11 +381,10 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	//var s *ghttp.Server
 	s := g.Server()
 	s.SetDumpRouterMap(false)
-	path := fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator), string(os.PathSeparator))
-	s.SetServerRoot(fmt.Sprintf("%s%vresource", gfile.Pwd(), string(os.PathSeparator)))
-	s.AddSearchPath(path)
-	s.AddStaticPath(fmt.Sprintf("%vupload", string(os.PathSeparator)), path)
-	err := s.SetLogPath(fmt.Sprintf("%s%vresource%vlog", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)))
+	s.SetServerRoot(fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator))
+	s.AddSearchPath(uploadPath)
+	s.AddStaticPath(fmt.Sprintf("%vupload", gfile.Separator), uploadPath)
+	err := s.SetLogPath(fmt.Sprintf("%s%vresource%vlog", gfile.Pwd(), gfile.Separator, gfile.Separator))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -411,17 +406,20 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
 	err = s.SetConfigWithMap(g.Map{
-		"sessionPath": fmt.Sprintf("%s%vresource%vsession", gfile.Pwd(), string(os.PathSeparator), string(os.PathSeparator)),
+		"sessionPath": fmt.Sprintf("%s%vresource%vsession", gfile.Pwd(), gfile.Separator, gfile.Separator),
 		"serverAgent": agent,
 	})
 	if err != nil {
 		fmt.Println(err)
 	}
 	s.Use(MiddlewareError)
-	skipUrl, _ := g.Cfg().Get(gctx.New(), "skipUrl")
-	s.BindHandler("/", func(r *ghttp.Request) {
-		r.Response.RedirectTo(gconv.String(skipUrl))
-	})
+	skipUrl, _ := g.Cfg().Get(gctx.New(), "skipUrl", "")
+	if gconv.String(skipUrl) != "" {
+		s.AddStaticPath(gconv.String(skipUrl), gfile.Pwd()+gfile.Separator+"resource"+gfile.Separator+gconv.String(skipUrl))
+		s.BindHandler("/", func(r *ghttp.Request) {
+			r.Response.RedirectTo(gconv.String(skipUrl) + "/index.html")
+		})
+	}
 	enhanceOpenAPIDoc(s)
 	return s
 }
