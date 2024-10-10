@@ -4,9 +4,12 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gres"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/nfnt/resize"
 	"image/jpeg"
@@ -61,34 +64,30 @@ var (
 	ctx context.Context
 )
 
-//func initLog(context context.Context) {
-//	ctx = context
-//	log = glog.New()
-//	logPath := gfile.Pwd() + "/logs"
-//	if !gfile.IsDir(logPath) {
-//		err := gfile.Mkdir(logPath)
-//		if err != nil {
-//			panic(err.Error())
-//		}
-//	}
-//	log.SetStack(true)
-//	log.SetStdoutPrint(true)
-//	_ = log.SetConfig(glog.Config{
-//		RotateSize: 1024 * 1024 * 1024 * 2,
-//	})
-//	_ = log.SetLevelStr("ALL")
-//	_ = log.SetPath(logPath)
-//}
-
-//func LogInfo(text ...interface{}) {
-//	log.SetFile("{Y-m-d}.log")
-//	log.Info(ctx, text...)
-//}
-//func LogError(text ...interface{}) {
-//	log.SetFile("{Y-m-d}-error.log")
-//	log.Error(ctx, text...)
-//}
-//func LogDebug(text ...interface{}) {
-//	log.SetFile("{Y-m-d}-debug.log")
-//	log.Debug(ctx, text...)
-//}
+func ResAddFile(onePath, twoPath string) {
+	if twoPath == "" {
+		err := gres.Load(fmt.Sprintf("%s", onePath))
+		if err != nil {
+			g.Log().Debug(gctx.GetInitCtx(), err)
+		}
+	} else {
+		err := gres.Load(fmt.Sprintf("%s/%s", onePath, twoPath))
+		if err != nil {
+			g.Log().Debug(gctx.GetInitCtx(), err)
+		}
+	}
+	if !gres.IsEmpty() {
+		g.Log().Debug(gctx.GetInitCtx(), fmt.Sprintf("%s is not empty", onePath))
+		if twoPath == "" {
+			err := gres.Export(onePath, onePath)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			err := gres.Export(twoPath, onePath)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+}

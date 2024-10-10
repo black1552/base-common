@@ -226,7 +226,7 @@ const BaseConfig = `{
 		"updatedAt":"update_time"
 	}
 },
-"skipUrl":"/dist/index.html",
+"skipUrl":"/dist",
 "openAPITitle": "",
 "openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
 "openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
