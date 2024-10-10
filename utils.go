@@ -69,11 +69,13 @@ func ResAddFile(onePath, twoPath string) {
 		err := gres.Load(fmt.Sprintf("%s", onePath))
 		if err != nil {
 			g.Log().Debug(gctx.GetInitCtx(), err)
+			panic(err)
 		}
 	} else {
 		err := gres.Load(fmt.Sprintf("%s/%s", onePath, twoPath))
 		if err != nil {
 			g.Log().Debug(gctx.GetInitCtx(), err)
+			panic(err)
 		}
 	}
 	if !gres.IsEmpty() {
