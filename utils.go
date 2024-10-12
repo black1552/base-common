@@ -63,7 +63,7 @@ var (
 	ctx context.Context
 )
 
-func ResAddFile(onePath, twoPath string) {
+func ResAddFile(onePath string) {
 	g.Log().Debug(gctx.GetInitCtx(), onePath)
 	gres.Dump()
 	if gres.IsEmpty() {
