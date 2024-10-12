@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -65,31 +64,22 @@ var (
 )
 
 func ResAddFile(onePath, twoPath string) {
-	if twoPath == "" {
-		err := gres.Load(fmt.Sprintf("%s", onePath))
-		if err != nil {
-			g.Log().Debug(gctx.GetInitCtx(), err)
-			panic(err)
-		}
-	} else {
-		err := gres.Load(fmt.Sprintf("%s/%s", onePath, twoPath))
-		if err != nil {
-			g.Log().Debug(gctx.GetInitCtx(), err)
-			panic(err)
-		}
+	g.Log().Debug(gctx.GetInitCtx(), onePath)
+	gres.Dump()
+	if gres.IsEmpty() {
+		return
 	}
-	if !gres.IsEmpty() {
-		g.Log().Debug(gctx.GetInitCtx(), fmt.Sprintf("%s is not empty", onePath))
-		if twoPath == "" {
-			err := gres.Export(onePath, onePath)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			err := gres.Export(twoPath, onePath)
-			if err != nil {
-				panic(err)
-			}
+	if gstr.Contains(onePath, "/") {
+		strs := gstr.Split(onePath, "/")
+		err := gres.Export(strs[1], onePath)
+		if err != nil {
+			panic(err)
+		}
+
+	} else {
+		err := gres.Export(onePath, onePath)
+		if err != nil {
+			panic(err)
 		}
 	}
 }
