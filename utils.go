@@ -83,6 +83,12 @@ func InStrArray(ext string, code int) bool {
  * 需要在boot中 打包引入 并在main.go中引入boot
  */
 func ResAddFile(onePath string) {
+	if gfile.Exists(gfile.Pwd() + gfile.Separator + onePath) {
+		err := gfile.Remove(onePath)
+		if err != nil {
+			panic(err)
+		}
+	}
 	g.Log().Debug(gctx.GetInitCtx(), onePath)
 	gres.Dump()
 	if gres.IsEmpty() {
