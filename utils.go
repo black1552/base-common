@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"github.com/gogf/gf/v2/container/garray"
@@ -15,6 +14,12 @@ import (
 	"os"
 )
 
+// Compress 图片压缩
+/*
+ * @param filePath string 图片路径
+ * @return string
+ * 压缩图片
+ */
 func Compress(filePath string) string {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -42,6 +47,12 @@ func Compress(filePath string) string {
 	return sta[0] + "-cop." + sta[1]
 }
 
+// Sha256 sha256加密
+/*
+ * @param src string 被加密字符串
+ * @return string
+ * 将字符串进行hash加密
+ */
 func Sha256(src string) string {
 	m := sha256.New()
 	m.Write([]byte(src))
@@ -49,6 +60,12 @@ func Sha256(src string) string {
 	return res
 }
 
+// InStrArray 判断是否在数组中
+/*
+ * @param ext string 要判断的字符串
+ * @param code int
+ * 判断是否在字符串数组中
+ */
 func InStrArray(ext string, code int) bool {
 	if code == 1 {
 		arr := garray.NewStrArrayFrom(g.SliceStr{".jpg", ".jpeg", ".png"})
@@ -59,10 +76,12 @@ func InStrArray(ext string, code int) bool {
 	}
 }
 
-var (
-	ctx context.Context
-)
-
+// ResAddFile 添加文件到资源包
+/*
+ * @param onePath string
+ * 例：gf pack resource/dist internal/boot/boot_resource.go -n boot
+ * 需要在boot中 打包引入 并在main.go中引入boot
+ */
 func ResAddFile(onePath string) {
 	g.Log().Debug(gctx.GetInitCtx(), onePath)
 	gres.Dump()

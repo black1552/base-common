@@ -93,6 +93,12 @@ func (a *ApiRes) FileSelect(path string) {
 	return
 }
 
+// LoginJson 返回登录json数据
+/*
+ * @param ctx 上下文
+ * @param msg 返回信息
+ * @param data 返回数据
+ */
 func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
 	var info interface{}
 	if len(data) > 0 {
@@ -107,6 +113,11 @@ func LoginJson(r *ghttp.Request, msg string, data ...interface{}) {
 	})
 }
 
+// ResponseJson 返回json数据
+/*
+ * @param ctx 上下文
+ * @param data 返回数据
+ */
 func ResponseJson(ctx context.Context, data interface{}) {
 	g.RequestFromCtx(ctx).Response.WriteJson(data)
 	return
@@ -121,6 +132,13 @@ type PageSize struct {
 }
 
 // SetPage 设置分页
+/*
+ * @param page 当前页
+ * @param limit 每页显示条数
+ * @param total 总条数
+ * @param data 返回数据
+ * @return PageSize
+ */
 func SetPage(page, limit, total int, data interface{}) *PageSize {
 	var size = new(PageSize)
 	if page == 1 {
@@ -170,13 +188,17 @@ func AuthBase(r *ghttp.Request, name string) {
 	}
 }
 
+// AuthAdmin 鉴权中间件，只有后端登录成功之后才能通过
 func AuthAdmin(r *ghttp.Request) {
 	AuthBase(r, "admin")
 }
+
+// AuthIndex 鉴权中间件，只有前端登录成功之后才能通过
 func AuthIndex(r *ghttp.Request) {
 	AuthBase(r, "user")
 }
 
+// NoLogin 未登录返回
 func NoLogin(r *ghttp.Request) {
 	r.Response.Status = 401
 	r.Response.WriteJsonExit(Json{
@@ -186,6 +208,7 @@ func NoLogin(r *ghttp.Request) {
 	})
 }
 
+// CreateFileDir 创建文件目录
 func CreateFileDir() error {
 	path := gfile.Pwd() + "/resource"
 	if !gfile.IsDir(path) {
@@ -306,9 +329,9 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 }
 
 var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
-var log *glog.Logger
 var uploadPath = fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator)
 
+// ConfigInit 初始化配置文件
 func ConfigInit() {
 	json, err := gjson.Decode(BaseConfig)
 	if err != nil {
@@ -337,20 +360,19 @@ func ConfigInit() {
 		g.Log().Info(gctx.New(), "配置文件创建成功！")
 	} else {
 		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
-		log = g.Log()
 	}
 }
 
-func LogDeBug(content ...interface{}) {
-	log.Debug(gctx.New(), content)
-}
-func LogInfo(content ...interface{}) {
-	log.Info(gctx.New(), content)
-}
-func LogError(content ...interface{}) {
-	log.Error(gctx.New(), content)
-}
-
+// CreateDB 创建数据库配置
+/*
+ * @param ctx context.Context
+ * @param sqlHost string 数据库地址
+ * @param sqlPort string 数据库端口
+ * @param sqlRoot string 数据库用户名
+ * @param sqlPass string 数据库密码
+ * @param baseName string 数据库名
+ * @param debug bool 是否开启调试模式
+ */
 func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
 	cfg := gcfg.Instance()
 	for {
@@ -377,6 +399,14 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
 	}
 }
 
+// Start 启动服务
+/*
+ * @param agent string 浏览器标识
+ * @param maxSessionTime time.Duration session最大时间
+ * @param isApi bool 是否开启api
+ * @param maxBody ...int64 最大上传文件大小 默认200M
+ * @return *ghttp.Server 服务实例
+ */
 func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
 	//var s *ghttp.Server
 	s := g.Server()
