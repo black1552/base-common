@@ -71,7 +71,7 @@ func ResAddFile(onePath string) {
 	}
 	if gstr.Contains(onePath, "/") {
 		strs := gstr.Split(onePath, "/")
-		err := gres.Export(strs[1], onePath)
+		err := gres.Export(strs[1], strs[0])
 		if err != nil {
 			panic(err)
 		}
