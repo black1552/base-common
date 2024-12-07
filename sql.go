@@ -7,7 +7,6 @@ import (
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gcron"
 	"github.com/gogf/gf/v2/text/gstr"
 )
 
@@ -28,38 +27,6 @@ func Transaction(function func() error) {
 	if err != nil {
 		panic(err.Error())
 	}
-}
-
-// CreateCron 创建定时任务
-func CreateCron(ctx context.Context, time string, name string, operate func()) {
-	_, err := gcron.AddSingleton(ctx, time, func(ctx context.Context) {
-		operate()
-	}, name)
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
-// StartCrons 开始指定的定时任
-func StartCrons(name string) {
-	gcron.Start(name)
-}
-
-// StopCron 紧停止指定定时任务
-func StopCron(name string) {
-	gcron.Stop(name)
-}
-
-// RemoveCron 停止并删除定时任务
-func RemoveCron(name string) {
-	gcron.Stop(name)
-	gcron.Remove(name)
-}
-
-// SearchCron 查询定时任务运行状态 如果定时任务未运行则返回NIL 运行则返回运行状态
-func SearchCron(name string) *gcron.Entry {
-	cron := gcron.Search(name)
-	return cron
 }
 
 // PostResult 建立POST请求并返回结果

@@ -443,6 +443,11 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 		s.BindHandler("/", func(r *ghttp.Request) {
 			r.Response.RedirectTo(gconv.String(skipUrl) + "/index.html")
 		})
+	} else {
+		s.AddStaticPath("/dist/index.html", gfile.Pwd()+gfile.Separator+"resource"+gfile.Separator+"dist/index.html")
+		s.BindHandler("/", func(r *ghttp.Request) {
+			r.Response.RedirectTo("/dist/index.html")
+		})
 	}
 	enhanceOpenAPIDoc(s)
 	return s
