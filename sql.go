@@ -3,7 +3,6 @@ package v2
 import (
 	"context"
 	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
-	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -86,7 +85,7 @@ func PostResult(ctx context.Context, url string, data g.Map, header string, clas
 	return result.ReadAllString(), nil
 }
 
-func GetResult(ctx context.Context, url string, data g.Map, va *gvar.Var) (string, error) {
+func GetResult(ctx context.Context, url string, data g.Map) (string, error) {
 	client := g.Client()
 	if url == "" {
 		return "", gerror.New("请求地址不可为空")

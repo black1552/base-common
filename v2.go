@@ -12,7 +12,6 @@ import (
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"time"
@@ -27,11 +26,6 @@ type Json struct {
 type ApiRes struct {
 	ctx  context.Context
 	json *Json
-}
-
-type Logs struct {
-	logs *glog.Logger
-	ctx  context.Context
 }
 
 func Success(ctx context.Context) *ApiRes {
