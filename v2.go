@@ -12,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"time"
@@ -279,6 +280,35 @@ const BaseConfig = `{
 	}
 }
 }`
+
+func LoginCountSession(ctx context.Context, sessionKey string) {
+	ti, err := g.RequestFromCtx(ctx).Session.Get(sessionKey+"LoginTime", "")
+	if err != nil {
+		panic(err.Error())
+	}
+	if ti.IsEmpty() {
+		_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginTime", gtime.Now().Timestamp())
+	}
+	now := gtime.Now().Timestamp()
+	if now-gconv.Int64(ti) <= 300 {
+		number, err := g.RequestFromCtx(ctx).Session.Get(sessionKey+"LoginNum", 0)
+		if err != nil {
+			panic(err.Error())
+		}
+		if number.IsEmpty() {
+			_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginNum", 1)
+		} else {
+			count := gconv.Int(number)
+			if count == 10 {
+				panic("尝试登录已超过限制，请等待5分钟后再次尝试或修改后尝试登录")
+			}
+			_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginNum", count+1)
+		}
+	} else {
+		_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginTime", gtime.Now().Timestamp())
+		_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginNum", 1)
+	}
+}
 
 func enhanceOpenAPIDoc(s *ghttp.Server) {
 	cfg := gcfg.Instance()
