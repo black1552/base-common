@@ -281,6 +281,28 @@ const BaseConfig = `{
 }
 }`
 
+func AuthLoginSession(ctx context.Context, sessionKey string) {
+	ti, err := g.RequestFromCtx(ctx).Session.Get(sessionKey+"LoginTime", "")
+	if err != nil {
+		panic(err.Error())
+	}
+	if !ti.IsEmpty() {
+		now := gtime.Now().Timestamp()
+		if now-gconv.Int64(ti) <= 300 {
+			number, err := g.RequestFromCtx(ctx).Session.Get(sessionKey+"LoginNum", 0)
+			if err != nil {
+				panic(err.Error())
+			}
+			if !number.IsEmpty() {
+				count := gconv.Int(number)
+				if count == 3 {
+					panic("尝试登录已超过限制，请等待5分钟后再次尝试或修改后尝试登录")
+				}
+			}
+		}
+	}
+}
+
 func LoginCountSession(ctx context.Context, sessionKey string) {
 	ti, err := g.RequestFromCtx(ctx).Session.Get(sessionKey+"LoginTime", "")
 	if err != nil {
