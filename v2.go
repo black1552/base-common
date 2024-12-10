@@ -299,7 +299,7 @@ func LoginCountSession(ctx context.Context, sessionKey string) {
 			_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginNum", 1)
 		} else {
 			count := gconv.Int(number)
-			if count == 10 {
+			if count == 3 {
 				panic("尝试登录已超过限制，请等待5分钟后再次尝试或修改后尝试登录")
 			}
 			_ = g.RequestFromCtx(ctx).Session.Set(sessionKey+"LoginNum", count+1)
