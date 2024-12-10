@@ -469,10 +469,13 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.Use(MiddlewareError)
 	skipUrl, _ := g.Cfg().Get(gctx.New(), "skipUrl", "")
 	if gconv.String(skipUrl) != "" {
-		s.AddStaticPath(gconv.String(skipUrl), gfile.Pwd()+gfile.Separator+"resource"+gfile.Separator+gconv.String(skipUrl))
-		s.BindHandler("/", func(r *ghttp.Request) {
-			r.Response.RedirectTo(gconv.String(skipUrl) + "/index.html")
-		})
+		isFile := gfile.IsFile(gfile.Pwd() + gfile.Separator + "resource" + gfile.Separator + gconv.String(skipUrl))
+		if isFile {
+			s.AddStaticPath(gconv.String(skipUrl), gfile.Pwd()+gfile.Separator+"resource"+gfile.Separator+gconv.String(skipUrl))
+			s.BindHandler("/", func(r *ghttp.Request) {
+				r.Response.RedirectTo(gconv.String(skipUrl) + "/index.html")
+			})
+		}
 	} else {
 		isFile := gfile.IsFile(gfile.Pwd() + gfile.Separator + "resource" + gfile.Separator + "dist/index.html")
 		if isFile {
