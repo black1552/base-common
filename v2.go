@@ -296,7 +296,7 @@ func AuthLoginSession(ctx context.Context, sessionKey string) {
 			if !number.IsEmpty() {
 				count := gconv.Int(number)
 				if count == 3 {
-					panic("尝试登录已超过限制，请等待5分钟后再次尝试或修改后尝试登录")
+					panic("请等待5分钟后再次尝试或修改后尝试登录")
 				}
 			}
 		}
