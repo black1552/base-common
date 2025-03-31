@@ -15,6 +15,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"net/http"
 	"time"
 )
 
@@ -150,7 +151,7 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
-	//r.Response.CORSDefault()
+	// r.Response.CORSDefault()
 	r.Middleware.Next()
 	if err := r.GetError(); err != nil {
 		bo := gstr.Contains(err.Error(), ": ")
@@ -165,7 +166,7 @@ func MiddlewareError(r *ghttp.Request) {
 			Code: 0,
 			Msg:  msg,
 		}
-		r.Response.Status = 200
+		r.Response.Status = http.StatusInternalServerError
 		r.Response.WriteJson(json)
 	}
 }
@@ -228,6 +229,9 @@ const BaseConfig = `{
 		"errorLogPattern":"error-{Ymd}.log",
 		"accessLogEnable":true,
 		"accessLogPattern":"access-{Ymd}.log"
+        "serverRoot":          "/var/www"                   
+        "searchPaths":         ["/home/www","/var/lib/www"]
+        "fileServerEnabled":   false
 	}
 },
 "database":{
@@ -260,24 +264,6 @@ const BaseConfig = `{
 	"stdout":true,
 	"stdoutColorDisabled":false,
 	"writerColorEnable":true
-},
-"gfcli":{
-	"build":{
-		"name":"checkRisk",
-		"arch":"amd64",
-		"system":"linux",
-		"mod":"none",
-		"packSrc":"manifest,resource",
-		"packDst":"internal/packed/packed.go",
-		"version":"v1.0.0001",
-		"output":"./bin"
-	},
-	"gen":{
-		"dao":{
-			"- link":"mysql:root:123456@tcp(127.0.0.1:3306)/check_risk",
-			"jsonCase":"CamelLower"
-		}
-	}
 }
 }`
 
@@ -375,7 +361,7 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 }
 
 var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
-var uploadPath = fmt.Sprintf("%s%vresource%vpublic%vupload", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator)
+var uploadPath = fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator)
 
 // ConfigInit 初始化配置文件
 func ConfigInit() {
@@ -454,12 +440,10 @@ func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName 
  * @return *ghttp.Server 服务实例
  */
 func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
-	//var s *ghttp.Server
+	// var s *ghttp.Server
 	s := g.Server()
 	s.SetDumpRouterMap(false)
-	s.SetServerRoot(fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator))
-	s.AddSearchPath(uploadPath)
-	s.AddStaticPath(fmt.Sprintf("%vupload", gfile.Separator), uploadPath)
+	s.AddStaticPath(fmt.Sprintf("%vstatic", gfile.Separator), uploadPath)
 	err := s.SetLogPath(fmt.Sprintf("%s%vresource%vlog", gfile.Pwd(), gfile.Separator, gfile.Separator))
 	if err != nil {
 		fmt.Println(err)
