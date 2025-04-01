@@ -228,9 +228,9 @@ const BaseConfig = `{
 		"errorLogEnabled":true,
 		"errorLogPattern":"error-{Ymd}.log",
 		"accessLogEnable":true,
-		"accessLogPattern":"access-{Ymd}.log"
-        "serverRoot":          "/var/www"                   
-        "searchPaths":         ["/home/www","/var/lib/www"]
+		"accessLogPattern":"access-{Ymd}.log",
+        "serverRoot":          "/var/www",                   
+        "searchPaths":         ["/home/www","/var/lib/www"],
         "fileServerEnabled":   false
 	}
 },
