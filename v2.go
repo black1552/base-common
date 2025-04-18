@@ -153,21 +153,24 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 func MiddlewareError(r *ghttp.Request) {
 	// r.Response.CORSDefault()
 	r.Middleware.Next()
+	var api *ApiRes
 	if err := r.GetError(); err != nil {
+		api = Error(r.Context())
 		bo := gstr.Contains(err.Error(), ": ")
-		msg := ""
 		if bo {
-			msg = gstr.SubStrFromEx(err.Error(), ": ")
+			api.json.Msg = gstr.SubStrFromEx(err.Error(), ": ")
 		} else {
-			msg = err.Error()
+			api.json.Msg = err.Error()
 		}
 		r.Response.ClearBuffer()
-		json := Json{
-			Code: 0,
-			Msg:  msg,
-		}
 		r.Response.Status = http.StatusInternalServerError
-		r.Response.WriteJson(json)
+		r.Response.WriteJson(api.json)
+	} else {
+		api = Success(r.Context())
+		api.json.Data = r.GetHandlerResponse()
+		api.json.Msg = "操作成功"
+		r.Response.Status = http.StatusOK
+		r.Response.WriteJson(api.json)
 	}
 }
 
