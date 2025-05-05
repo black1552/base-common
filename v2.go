@@ -168,9 +168,6 @@ func MiddlewareError(r *ghttp.Request) {
 		}
 		r.Response.Status = http.StatusInternalServerError
 		r.Response.WriteJson(json)
-	} else {
-		r.Response.Status = http.StatusOK
-		r.Response.WriteJson(r.GetHandlerResponse())
 	}
 }
 
