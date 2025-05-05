@@ -43,7 +43,7 @@ func Compress(filePath string) string {
 	if err != nil {
 		panic(err.Error())
 	}
-	_ = gfile.Remove(filePath)
+	_ = gfile.RemoveFile(filePath)
 	return sta[0] + "-cop." + sta[1]
 }
 
@@ -84,7 +84,7 @@ func InStrArray(ext string, code int) bool {
  */
 func ResAddFile(onePath string) {
 	if gfile.Exists(gfile.Pwd() + gfile.Separator + onePath) {
-		err := gfile.Remove(onePath)
+		err := gfile.RemoveFile(onePath)
 		if err != nil {
 			panic(err)
 		}

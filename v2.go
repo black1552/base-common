@@ -153,24 +153,24 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 func MiddlewareError(r *ghttp.Request) {
 	// r.Response.CORSDefault()
 	r.Middleware.Next()
-	var api *ApiRes
 	if err := r.GetError(); err != nil {
-		api = Error(r.Context())
 		bo := gstr.Contains(err.Error(), ": ")
+		msg := ""
 		if bo {
-			api.json.Msg = gstr.SubStrFromEx(err.Error(), ": ")
+			msg = gstr.SubStrFromEx(err.Error(), ": ")
 		} else {
-			api.json.Msg = err.Error()
+			msg = err.Error()
 		}
 		r.Response.ClearBuffer()
+		json := Json{
+			Code: 0,
+			Msg:  msg,
+		}
 		r.Response.Status = http.StatusInternalServerError
-		r.Response.WriteJson(api.json)
+		r.Response.WriteJson(json)
 	} else {
-		api = Success(r.Context())
-		api.json.Data = r.GetHandlerResponse()
-		api.json.Msg = "操作成功"
 		r.Response.Status = http.StatusOK
-		r.Response.WriteJson(api.json)
+		r.Response.WriteJson(r.GetHandlerResponse())
 	}
 }
 
@@ -232,9 +232,7 @@ const BaseConfig = `{
 		"errorLogPattern":"error-{Ymd}.log",
 		"accessLogEnable":true,
 		"accessLogPattern":"access-{Ymd}.log",
-        "serverRoot":          "/var/www",                   
-        "searchPaths":         ["/home/www","/var/lib/www"],
-        "fileServerEnabled":   false
+        "fileServerEnabled": true
 	}
 },
 "database":{

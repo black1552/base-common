@@ -3,6 +3,7 @@ package v2
 import (
 	"context"
 	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
+	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -30,36 +31,25 @@ func Transaction(function func() error) {
 }
 
 // PostResult 建立POST请求并返回结果
-func PostResult(ctx context.Context, url string, data g.Map, header string, class string) (string, error) {
+func PostResult(ctx context.Context, url string, data g.Map, header string) (res *gvar.Var) {
 	if url == "" {
-		return "", gerror.New("请求地址不可为空")
+		panic(gerror.New("请求地址不可为空"))
 	}
 	client := g.Client()
 	if header != "" {
 		client = client.HeaderRaw(header)
 	}
-	switch class {
-	case "json":
-		client = client.ContentJson()
-	case "xml":
-		client = client.ContentXml()
-	default:
-	}
-	result, err := client.Post(ctx, url, data)
-	if err != nil {
-		return "", err
-	}
-	return result.ReadAllString(), nil
+	client.ContentJson()
+	res = client.PostVar(ctx, url, data)
+	return
 }
 
-func GetResult(ctx context.Context, url string, data g.Map) (string, error) {
+func GetResult(ctx context.Context, url string, data g.Map) (res *gvar.Var) {
 	client := g.Client()
+	client.ContentJson()
 	if url == "" {
-		return "", gerror.New("请求地址不可为空")
+		panic(gerror.New("请求地址不可为空"))
 	}
-	resutl, err := client.Get(ctx, url, data)
-	if err != nil {
-		return "", err
-	}
-	return resutl.ReadAllString(), nil
+	res = client.GetVar(ctx, url, data)
+	return
 }
