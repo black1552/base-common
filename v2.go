@@ -365,9 +365,7 @@ var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
 var uploadPath = fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator)
 
 // ConfigInit 初始化配置文件
-func ConfigInit(wg *sync.WaitGroup) {
-	wg.Add(1)
-	defer wg.Done()
+func ConfigInit() {
 	json, err := gjson.Decode(BaseConfig)
 	if err != nil {
 		g.Log().Error(gctx.New(), "配置模板解析失败", err)
