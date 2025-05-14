@@ -260,6 +260,8 @@ const BaseConfig = `{
 	"ctxKeys":[],
 	"header":true,
 	"stdout":true,
+ 	"rotateSize":"2M",
+  	"rotateBackupLimit":10
 	"stdoutColorDisabled":false,
 	"writerColorEnable":true
 }
