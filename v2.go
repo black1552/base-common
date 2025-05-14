@@ -16,6 +16,7 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"net/http"
+	"sync"
 	"time"
 )
 
