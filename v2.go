@@ -262,7 +262,7 @@ const BaseConfig = `{
 	"header":true,
 	"stdout":true,
  	"rotateSize":"2M",
-  	"rotateBackupLimit":50
+  	"rotateBackupLimit":50,
 	"stdoutColorDisabled":false,
 	"writerColorEnable":true
 }
