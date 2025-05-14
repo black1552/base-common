@@ -240,7 +240,7 @@ const BaseConfig = `{
 		"pass":"",
 		"name":"",
 		"type":"mysql",
-  		"timezone": "'Local'"
+  		"timezone": "'Local'",
 		"debug":false,
 		"charset":"utf8mb4",
 		"createdAt":"create_time",
