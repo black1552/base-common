@@ -50,6 +50,10 @@ func (c Curd[R]) Delete(ctx ctx, primaryKey any) error {
 	return err
 }
 
+func (c Curd[R]) Sum(ctx ctx, where any, field string) (float64, error) {
+	return c.Dao.Ctx(ctx).Where(where).Sum(field)
+}
+
 func (c Curd[R]) Find(ctx ctx, primaryKey any) (model *R, err error) {
 	err = c.Dao.Ctx(ctx).WherePri(primaryKey).Scan(&model)
 	if err != nil {
