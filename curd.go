@@ -21,6 +21,8 @@ type ICurd[R any] interface {
 	Exists(ctx ctx, where any) (exists bool, err error)
 	Delete(ctx ctx, primaryKey any) error
 	Value(ctx ctx, where any, field any) (*gvar.Var, error)
+	Sum(ctx ctx, where any, field string) (float64, error)
+	ArrayField(ctx ctx, where any, field any) ([]*gvar.Var, error)
 	Count(ctx ctx, where any) (count int, err error)
 }
 
@@ -52,6 +54,10 @@ func (c Curd[R]) Delete(ctx ctx, primaryKey any) error {
 
 func (c Curd[R]) Sum(ctx ctx, where any, field string) (float64, error) {
 	return c.Dao.Ctx(ctx).Where(where).Sum(field)
+}
+
+func (c Curd[R]) ArrayField(ctx ctx, where any, field any) ([]*gvar.Var, error) {
+	return c.Dao.Ctx(ctx).Where(where).Fields(field).Array()
 }
 
 func (c Curd[R]) Find(ctx ctx, primaryKey any) (model *R, err error) {
