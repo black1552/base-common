@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 )
 
@@ -19,6 +20,7 @@ type ICurd[R any] interface {
 	UpdatePri(ctx ctx, primaryKey any, data any) (count int64, err error)
 	Exists(ctx ctx, where any) (exists bool, err error)
 	Delete(ctx ctx, primaryKey any) error
+	Value(ctx ctx, where any, field any) (*gvar.Var, error)
 	Count(ctx ctx, where any) (count int, err error)
 }
 
@@ -34,6 +36,15 @@ type Curd[R any] struct {
 	Dao IDao
 }
 
+func (c Curd[R]) Value(ctx ctx, where any, field any) (*gvar.Var, error) {
+	return c.Dao.Ctx(ctx).Where(where).Fields(field).Value()
+}
+func (c Curd[R]) Array(ctx ctx, where any, field any) ([]*gvar.Var, error) {
+	if field == nil {
+		field = "*"
+	}
+	return c.Dao.Ctx(ctx).Where(where).Fields(field).Array()
+}
 func (c Curd[R]) Delete(ctx ctx, primaryKey any) error {
 	_, err := c.Dao.Ctx(ctx).WherePri(primaryKey).Delete()
 	return err
