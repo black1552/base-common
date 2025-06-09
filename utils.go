@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"github.com/gogf/gf/v2/container/garray"
@@ -11,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/nfnt/resize"
 	"image/jpeg"
+	"math/big"
 	"os"
 )
 
@@ -107,4 +109,27 @@ func ResAddFile(onePath string) {
 			panic(err)
 		}
 	}
+}
+
+const (
+	CharsetLower   = "abcdefghijklmnopqrstuvwxyz"
+	CharsetUpper   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	CharsetNumber  = "0123456789"
+	CharsetDefault = CharsetLower + CharsetUpper + CharsetNumber
+)
+
+// GenerateString 生成安全随机字符串
+func GenerateString(length int) (str string) {
+	bytes := make([]byte, length)
+	charsetLen := big.NewInt(int64(len(CharsetDefault)))
+
+	for i := range bytes {
+		n, err := rand.Int(rand.Reader, charsetLen)
+		if err != nil {
+			panic(err)
+		}
+		bytes[i] = CharsetDefault[n.Int64()]
+	}
+	str = string(bytes)
+	return
 }
