@@ -90,8 +90,12 @@ func (c Curd[R]) Exists(ctx ctx, where any) (exists bool, err error) {
 	return c.Dao.Ctx(ctx).Where(where).Exist()
 }
 
-func (c Curd[R]) All(ctx ctx, where any, with []any, order any, limit ...int) (items []*R, err error) {
-	err = c.Dao.Ctx(ctx).Where(where).With(with...).Order(order).Limit(limit...).Scan(&items)
+func (c Curd[R]) All(ctx ctx, where any, with bool, order any) (items []*R, err error) {
+	db := c.Dao.Ctx(ctx)
+	if with == true {
+		db = db.WithAll()
+	}
+	err = db.Where(where).Order(order).Scan(&items)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
@@ -155,24 +159,21 @@ func (c Curd[R]) SimplePaginate(ctx context.Context, where any, p Paginate, with
 	}, nil
 }
 
-func (c Curd[R]) Paginate(ctx context.Context, where any, p Paginate, with []any, order any) (paginator *Paginator[*R], err error) {
+func (c Curd[R]) Paginate(ctx context.Context, where any, p Paginate, with bool, order any) (items []*R, total int, err error) {
 	query := c.Dao.Ctx(ctx)
 	if where != nil {
 		query = query.Where(where)
 	}
-	items := make([]*R, 0)
-	total := 0
 	query = query.Page(p.PageNum, p.PageSize)
 	if order == nil {
-		order = "id desc"
+		order = "create_time desc"
 	}
-	err = query.With(with...).Order(order).ScanAndCount(&items, &total, true)
+	if with == true {
+		query = query.WithAll()
+	}
+	err = query.Order(order).ScanAndCount(&items, &total, false)
 	if err != nil {
 		return
 	}
-	return &Paginator[*R]{
-		Items:    items,
-		Total:    total,
-		IsSimple: false,
-	}, nil
+	return
 }
