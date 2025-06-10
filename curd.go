@@ -60,8 +60,12 @@ func (c Curd[R]) ArrayField(ctx ctx, where any, field any) ([]*gvar.Var, error) 
 	return c.Dao.Ctx(ctx).Where(where).Fields(field).Array()
 }
 
-func (c Curd[R]) Find(ctx ctx, primaryKey any) (model *R, err error) {
-	err = c.Dao.Ctx(ctx).WherePri(primaryKey).Scan(&model)
+func (c Curd[R]) Find(ctx ctx, primaryKey any, with ...bool) (model *R, err error) {
+	db := c.Dao.Ctx(ctx).WherePri(primaryKey)
+	if len(with) > 0 && with[0] == true {
+		db = db.WithAll()
+	}
+	err = db.Scan(&model)
 	if err != nil {
 		return
 	}
