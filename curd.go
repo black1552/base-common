@@ -75,8 +75,15 @@ func (c Curd[R]) Find(ctx ctx, primaryKey any, with ...bool) (model *R, err erro
 	return
 }
 
-func (c Curd[R]) First(ctx ctx, where any, order ...any) (model *R, err error) {
-	err = c.Dao.Ctx(ctx).Where(where).Order(order...).Scan(&model)
+func (c Curd[R]) First(ctx ctx, where any, with bool, order ...any) (model *R, err error) {
+	db := c.Dao.Ctx(ctx).Where(where)
+	if with {
+		db = db.WithAll()
+	}
+	if len(order) > 0 {
+		db = db.Order(order...)
+	}
+	err = db.Scan(&model)
 	if err != nil {
 		return
 	}
