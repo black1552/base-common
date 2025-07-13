@@ -3,6 +3,9 @@ package v2
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/encoding/gyaml"
@@ -15,14 +18,12 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"net/http"
-	"time"
 )
 
 type Json struct {
-	Code int         `json:"code"`
-	Data interface{} `json:"data"`
-	Msg  string      `json:"msg"`
+	Code int    `json:"code" d:"1"`
+	Data any    `json:"data"`
+	Msg  string `json:"msg" d:"操作成功"`
 }
 
 type ApiRes struct {

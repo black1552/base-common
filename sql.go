@@ -2,13 +2,14 @@ package v2
 
 import (
 	"context"
+
 	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
-	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
-	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 // GetCapitalPass MD5化并转换为大写
@@ -30,26 +31,68 @@ func Transaction(function func() error) {
 	}
 }
 
-// PostResult 建立POST请求并返回结果
-func PostResult(ctx context.Context, url string, data g.Map, header string) (res *gvar.Var) {
-	if url == "" {
-		panic(gerror.New("请求地址不可为空"))
-	}
-	client := g.Client()
-	if header != "" {
-		client = client.HeaderRaw(header)
-	}
-	client.ContentJson()
-	res = client.PostVar(ctx, url, data)
-	return
+type SClient[R any] struct {
+	client  *gclient.Client
+	request any
+	header  map[string]string
+	url     string
 }
 
-func GetResult(ctx context.Context, url string, data g.Map) (res *gvar.Var) {
-	client := g.Client()
-	client.ContentJson()
-	if url == "" {
-		panic(gerror.New("请求地址不可为空"))
+func NewClient[R any](request any, url string, header map[string]string) *SClient[R] {
+	return &SClient[R]{
+		client:  g.Client(),
+		request: request,
+		header:  header,
+		url:     url,
 	}
-	res = client.GetVar(ctx, url, data)
+}
+func (w *SClient[R]) Post(ctx context.Context) (res *R) {
+	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "post", w.request)
+	resp := w.client.PostVar(ctx, w.url, w.request)
+	err := gconv.Struct(resp, &res)
+	if err != nil {
+		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		return nil
+	}
+	return
+}
+func (w *SClient[R]) Get(ctx context.Context) (res *R) {
+	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "get", w.request)
+	resp := w.client.GetVar(ctx, w.url, w.request)
+	err := gconv.Struct(resp, &res)
+	if err != nil {
+		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		return nil
+	}
+	return
+}
+func (w *SClient[R]) Put(ctx context.Context) (res *R) {
+	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "put", w.request)
+	resp := w.client.PutVar(ctx, w.url, w.request)
+	err := gconv.Struct(resp, &res)
+	if err != nil {
+		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		return nil
+	}
+	return
+}
+func (w *SClient[R]) Delete(ctx context.Context) (res *R) {
+	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "delete", w.request)
+	resp := w.client.DeleteVar(ctx, w.url, w.request)
+	err := gconv.Struct(resp, &res)
+	if err != nil {
+		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		return nil
+	}
+	return
+}
+func (w *SClient[R]) Patch(ctx context.Context) (res *R) {
+	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "patch", w.request)
+	resp := w.client.PatchVar(ctx, w.url, w.request)
+	err := gconv.Struct(resp, &res)
+	if err != nil {
+		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		return nil
+	}
 	return
 }

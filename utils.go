@@ -4,6 +4,11 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"image/jpeg"
+	"math/big"
+	"os"
+
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -11,9 +16,6 @@ import (
 	"github.com/gogf/gf/v2/os/gres"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/nfnt/resize"
-	"image/jpeg"
-	"math/big"
-	"os"
 )
 
 // Compress 图片压缩
@@ -132,4 +134,33 @@ func GenerateString(length int) (str string) {
 	}
 	str = string(bytes)
 	return
+}
+
+// GetFileList 获取文件列表
+/*
+ * 根据传入的路径返回该路径下的所有可访问的列表
+ * 要求必须将静态文件访问路径定义为static，且静态文件访问目录为resource
+ */
+func GetFileList(path string) []string {
+	if path == "" {
+		path = "/"
+	}
+	filePath := fmt.Sprintf("%s%sresource", gfile.Pwd(), gfile.Separator)
+	if path != "/" {
+		filePath += gfile.Separator + path + gfile.Separator
+	}
+	paths, _ := gfile.DirNames(filePath)
+	pathArr := garray.NewStrArray()
+	for _, v := range paths {
+		if gstr.Contains(v, ".") {
+			if path != "/" {
+				pathArr.Append("/static/" + path + "/" + v)
+			} else {
+				pathArr.Append("/static/" + v)
+			}
+		} else {
+			pathArr.Append(v)
+		}
+	}
+	return pathArr.Slice()
 }
