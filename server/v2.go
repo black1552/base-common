@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"net/http"
 	"time"
 
@@ -152,6 +153,11 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
+	traceId := r.GetHeader("trace-id")
+	if traceId != "" {
+		ctx, _ := gtrace.WithTraceID(r.Context(), traceId)
+		r.SetCtx(ctx)
+	}
 	// r.Response.CORSDefault()
 	r.Middleware.Next()
 	if err := r.GetError(); err != nil {
@@ -495,4 +501,16 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	}
 	enhanceOpenAPIDoc(s)
 	return s
+}
+
+func CORSMiddleware(r *ghttp.Request) {
+	r.Response.CORS(ghttp.CORSOptions{
+		AllowOrigin:      "*",
+		AllowMethods:     "GET,POST",
+		AllowCredentials: "true",
+		AllowHeaders:     "Origin,Content-Type,Accept,User-Agent,Cookie,Authorization,X-Auth-Token,X-Requested-With,trace-id",
+		ExposeHeaders:    "Content-Length,Content-Type,Set-Cookie,Authorization,X-Auth-Token,X-Requested-With,trace-id",
+		MaxAge:           3628800,
+	})
+	r.Middleware.Next()
 }
