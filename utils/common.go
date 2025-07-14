@@ -1,4 +1,4 @@
-package v2
+package utils
 
 type NormalRes[T any] struct {
 	Code int    `json:"code"    dc:"code"`

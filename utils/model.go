@@ -1,4 +1,4 @@
-package v2
+package utils
 
 type Paginator[I any] struct {
 	Items    []I

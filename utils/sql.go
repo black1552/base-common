@@ -1,4 +1,4 @@
-package v2
+package utils
 
 import (
 	"context"
@@ -39,12 +39,16 @@ type SClient[R any] struct {
 }
 
 func NewClient[R any](request any, url string, header map[string]string) *SClient[R] {
-	return &SClient[R]{
-		client:  g.Client(),
-		request: request,
-		header:  header,
-		url:     url,
+	s := &SClient[R]{}
+	if header != nil {
+		s.client = g.Client().ContentJson().SetHeaderMap(header)
+	} else {
+		s.client = g.Client().ContentJson()
 	}
+	s.header = header
+	s.url = url
+	s.request = request
+	return s
 }
 func (w *SClient[R]) Post(ctx context.Context) (res *R) {
 	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "post", w.request)

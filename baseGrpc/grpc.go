@@ -2,7 +2,7 @@ package baseGrpc
 
 import (
 	"context"
-	v2 "github.com/black1552/base-common"
+	v2 "github.com/black1552/base-common/utils"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/gogf/gf/contrib/registry/etcd/v2"
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"

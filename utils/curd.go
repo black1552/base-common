@@ -1,4 +1,4 @@
-package v2
+package utils
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type ICurd[R any] interface {
 	Find(ctx ctx, primaryKey any) (model *R, err error)
 	All(ctx ctx, where any, with []any, order any, limit ...int) (items []*R, err error)
 	First(ctx ctx, where any, order ...any) (model *R, err error)
-	Paginate(ctx ctx, where any, p Paginate, with []any, order any) (paginator *Paginator[*R], err error)
+	Paginate(ctx ctx, where any, p v2.Paginate, with []any, order any) (paginator *v2.Paginator[*R], err error)
 	Update(ctx ctx, where any, data any) (count int64, err error)
 	UpdatePri(ctx ctx, primaryKey any, data any) (count int64, err error)
 	Exists(ctx ctx, where any) (exists bool, err error)
@@ -144,7 +144,7 @@ func (c Curd[R]) UpdatePri(ctx ctx, primaryKey any, data any) (count int64, err 
 	return
 }
 
-func (c Curd[R]) SimplePaginate(ctx context.Context, where any, p Paginate, with []any, order any) (paginator *Paginator[*R], err error) {
+func (c Curd[R]) SimplePaginate(ctx context.Context, where any, p v2.Paginate, with []any, order any) (paginator *v2.Paginator[*R], err error) {
 	query := c.Dao.Ctx(ctx)
 	if where != nil {
 		query = query.Where(where)
@@ -159,14 +159,14 @@ func (c Curd[R]) SimplePaginate(ctx context.Context, where any, p Paginate, with
 	if err != nil {
 		return
 	}
-	return &Paginator[*R]{
+	return &v2.Paginator[*R]{
 		Items:    items,
 		Total:    total,
 		IsSimple: true,
 	}, nil
 }
 
-func (c Curd[R]) Paginate(ctx context.Context, where any, p Paginate, with bool, order any) (items []*R, total int, err error) {
+func (c Curd[R]) Paginate(ctx context.Context, where any, p v2.Paginate, with bool, order any) (items []*R, total int, err error) {
 	query := c.Dao.Ctx(ctx)
 	if where != nil {
 		query = query.Where(where)
