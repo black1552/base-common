@@ -506,7 +506,7 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 func CORSMiddleware(r *ghttp.Request) {
 	r.Response.CORS(ghttp.CORSOptions{
 		AllowOrigin:      "*",
-		AllowMethods:     "GET,POST",
+		AllowMethods:     "GET,PUT,POST,DELETE,PATCH,HEAD,CONNECT,OPTIONS,TRACE",
 		AllowCredentials: "true",
 		AllowHeaders:     "Origin,Content-Type,Accept,User-Agent,Cookie,Authorization,X-Auth-Token,X-Requested-With,trace-id",
 		ExposeHeaders:    "Content-Length,Content-Type,Set-Cookie,Authorization,X-Auth-Token,X-Requested-With,trace-id",

@@ -2,8 +2,6 @@ package utils
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 )
@@ -69,9 +67,6 @@ func (c Curd[R]) Find(ctx ctx, primaryKey any, with ...bool) (model *R, err erro
 	if err != nil {
 		return
 	}
-	if model == nil {
-		err = sql.ErrNoRows
-	}
 	return
 }
 
@@ -87,9 +82,6 @@ func (c Curd[R]) First(ctx ctx, where any, with bool, order ...any) (model *R, e
 	if err != nil {
 		return
 	}
-	if model == nil {
-		err = sql.ErrNoRows
-	}
 	return
 }
 
@@ -103,11 +95,8 @@ func (c Curd[R]) All(ctx ctx, where any, with bool, order any) (items []*R, err 
 		db = db.WithAll()
 	}
 	err = db.Where(where).Order(order).Scan(&items)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
 		return nil, err
-	}
-	if items == nil {
-		items = make([]*R, 0)
 	}
 	return
 }
