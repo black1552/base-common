@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.24.0
 
 require (
+	github.com/eclipse/paho.mqtt.golang v1.5.0
 	github.com/duke-git/lancet/v2 v2.3.6
 	github.com/gogf/gf/contrib/drivers/mysql/v2 v2.9.0
 	github.com/gogf/gf/contrib/registry/etcd/v2 v2.9.0

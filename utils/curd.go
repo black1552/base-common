@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 )
@@ -33,7 +34,8 @@ type IDao interface {
 }
 
 type Curd[R any] struct {
-	Dao IDao
+	Dao    IDao
+	Column R
 }
 
 func (c Curd[R]) Value(ctx ctx, where any, field any) (*gvar.Var, error) {

@@ -15,6 +15,7 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/duke-git/lancet/v2 v2.3.6 h1:NKxSSh+dlgp37funvxLCf3xLBeUYa7VW1thYQP6j3Y8=
 github.com/duke-git/lancet/v2 v2.3.6/go.mod h1:zGa2R4xswg6EG9I6WnyubDbFO/+A/RROxIbXcwryTsc=
+github.com/eclipse/paho.mqtt.golang v1.5.0/go.mod h1:du/2qNQVqJf/Sqs4MEL77kR8QTqANF7XU7Fk0aOTAgk=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/color v1.18.0 h1:S8gINlzdQ840/4pfAwic/ZE0djQEH3wM94VfqLTZcOM=
@@ -29,9 +30,6 @@ github.com/go-logr/stdr v1.2.2/go.mod h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre
 github.com/go-sql-driver/mysql v1.9.2 h1:4cNKDYQ1I84SXslGddlsrMhc8k4LeDVj6Ad6WRjiHuU=
 github.com/go-sql-driver/mysql v1.9.2/go.mod h1:qn46aNg1333BRMNU69Lq93t8du/dwxI64Gl8i5p1WMU=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
-github.com/goflyfox/gtoken v1.5.11 h1:aIHyXkM5tLc3tznHQVfRgRMRgK9iBrat2oGLhJA2Zh4=
-github.com/goflyfox/gtoken v1.5.11/go.mod h1:QounNiCL95yP8RiCyTpBRwekXO3B4LUUWgmCAYbIFAk=
-github.com/goflyfox/gtoken/v2 v2.0.3 h1:sbXFzlVACj2jfdvyUdsUdh6mfMCuujlRU50gEGQdT2Y=
 github.com/goflyfox/gtoken/v2 v2.0.3/go.mod h1:1/TnxTUiyrCFtZHw1cgFqg+lo41N56Cs62wQy2tFVCw=
 github.com/gogf/gf/contrib/drivers/mysql/v2 v2.9.0 h1:1f7EeD0lfPHoXfaJDSL7cxRcSRelbsAKgF3MGXY+Uyo=
 github.com/gogf/gf/contrib/drivers/mysql/v2 v2.9.0/go.mod h1:tToO1PjGkLIR+9DbJ0wrKicYma0H/EUHXOpwel6Dw+0=
