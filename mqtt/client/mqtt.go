@@ -76,6 +76,13 @@ func (c *Client) SubscribeMultiple(topics map[string]byte, callback mqtt.Message
 	return nil
 }
 
+func (c *Client) UnSubscribe(topic string) error {
+	if token := c.client.Unsubscribe(topic); token.Wait() && token.Error() != nil {
+		return fmt.Errorf("退订主题%s出现错误: %w", topic, token.Error())
+	}
+	return nil
+}
+
 // Publish 发布消息
 func (c *Client) Publish(topic string, qos byte, retained bool, payload interface{}) error {
 	if token := c.client.Publish(topic, qos, retained, payload); token.Wait() && token.Error() != nil {
