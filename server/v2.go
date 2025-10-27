@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gogf/gf/v2/os/glog"
 
 	"github.com/gogf/gf/v2/database/gdb"
@@ -155,11 +154,6 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
-	traceId := r.GetHeader("trace-id")
-	if traceId != "" {
-		ctx, _ := gtrace.WithTraceID(r.Context(), traceId)
-		r.SetCtx(ctx)
-	}
 	// r.Response.CORSDefault()
 	r.Middleware.Next()
 	var (
@@ -296,7 +290,7 @@ const BaseConfig = `{
 "openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
 "openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
 "openAPIName": "",
-"doMain": [],
+"doMain": ["localhost","127.0.0.1"],
 "openAPIVersion":"v1.0",
 "logger":{
 	"path":"./log/",
