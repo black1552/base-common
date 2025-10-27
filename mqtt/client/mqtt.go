@@ -38,35 +38,6 @@ func NewClientWithAuth(ctx context.Context, broker, clientId, username, password
 	opts.SetClientID(clientId)
 	opts.SetUsername(username)
 	opts.SetPassword(password)
-
-	// 启用自动重连
-	opts.SetAutoReconnect(true)
-
-	// 设置连接重试
-	opts.SetConnectRetry(true)
-	opts.SetConnectRetryInterval(10 * time.Second)
-
-	// 设置连接超时时间
-	opts.SetConnectTimeout(60 * time.Second)
-
-	// 设置保活时间(心跳)
-	opts.SetKeepAlive(60 * time.Second)
-
-	// 设置ping超时时间
-	opts.SetPingTimeout(20 * time.Second)
-
-	// 设置clean session为false，保留会话状态
-	opts.SetCleanSession(false)
-
-	// 设置最大重连间隔
-	opts.SetMaxReconnectInterval(20 * time.Second)
-
-	// 设置消息排序
-	opts.SetOrderMatters(false)
-
-	// 设置协议版本
-	opts.SetProtocolVersion(4) // MQTT 3.1.1
-
 	// 设置连接丢失处理函数
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		glog.Error(ctx, "MQTT连接断开:", err)
