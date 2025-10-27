@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/net/gtrace"
 	"net/http"
 	"time"
+
+	"github.com/gogf/gf/v2/net/gtrace"
+	"github.com/gogf/gf/v2/os/glog"
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -160,6 +162,36 @@ func MiddlewareError(r *ghttp.Request) {
 	}
 	// r.Response.CORSDefault()
 	r.Middleware.Next()
+	var (
+		msg    string
+		err    = r.GetError()
+		res    = r.GetHandlerResponse()
+		status = r.Response.Status
+	)
+	json := new(Json)
+	json.Data = res
+	if err == nil {
+		json.Code = 1
+		if r.Response.BufferLength() > 0 {
+			glog.Infof(r.Context(), "Buffer:%s", r.Response.BufferString())
+			if gjson.Valid(r.Response.Buffer()) {
+				js, _ := gjson.DecodeToJson(r.Response.Buffer())
+				json.Data = js
+			} else {
+				msg = r.Response.BufferWriter.BufferString()
+			}
+			r.Response.BufferWriter.ClearBuffer()
+		} else {
+			msg = "操作成功"
+		}
+	} else {
+		bo := gstr.Contains(err.Error(), ": ")
+		if bo {
+			msg = gstr.SubStrFromEx(err.Error(), ": ")
+		} else {
+			msg = err.Error()
+		}
+	}
 	if err := r.GetError(); err != nil {
 		bo := gstr.Contains(err.Error(), ": ")
 		msg := ""
@@ -169,13 +201,18 @@ func MiddlewareError(r *ghttp.Request) {
 			msg = err.Error()
 		}
 		r.Response.ClearBuffer()
-		json := Json{
-			Code: 0,
-			Msg:  msg,
-		}
+		json.Code = 0
+		json.Msg = msg
 		r.Response.Status = http.StatusInternalServerError
-		r.Response.WriteJson(json)
+	} else {
+		json.Msg = msg
+		if status == 401 {
+			json.Code = 0
+			json.Msg = "请登录后操作"
+		}
 	}
+
+	r.Response.WriteJson(json)
 }
 
 // AuthBase 鉴权中间件，只有前端或者后端登录成功之后才能通过
@@ -259,6 +296,7 @@ const BaseConfig = `{
 "openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
 "openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
 "openAPIName": "",
+"doMain": [],
 "openAPIVersion":"v1.0",
 "logger":{
 	"path":"./log/",
@@ -504,13 +542,11 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 }
 
 func CORSMiddleware(r *ghttp.Request) {
-	r.Response.CORS(ghttp.CORSOptions{
-		AllowOrigin:      "*",
-		AllowMethods:     "GET,PUT,POST,DELETE,PATCH,HEAD,CONNECT,OPTIONS,TRACE",
-		AllowCredentials: "true",
-		AllowHeaders:     "Origin,Content-Type,Accept,User-Agent,Cookie,Authorization,X-Auth-Token,X-Requested-With,trace-id",
-		ExposeHeaders:    "Content-Length,Content-Type,Set-Cookie,Authorization,X-Auth-Token,X-Requested-With,trace-id",
-		MaxAge:           3628800,
-	})
+	corsOptions := r.Response.DefaultCORSOptions()
+	cfg, _ := gcfg.Instance().Get(r.Context(), "doMain", nil)
+	if !cfg.IsNil() {
+		corsOptions.AllowDomain = cfg.Strings()
+	}
+	r.Response.CORS(corsOptions)
 	r.Middleware.Next()
 }
