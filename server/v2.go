@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/gogf/gf/v2/net/gtrace"
 	"net/http"
+	"path/filepath"
 	"time"
+
+	"github.com/gogf/gf/v2/net/gtrace"
 
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -236,7 +238,8 @@ const BaseConfig = `{
 		"errorLogPattern":"error-{Ymd}.log",
 		"accessLogEnable":true,
 		"accessLogPattern":"access-{Ymd}.log",
-        "fileServerEnabled": true
+        "fileServerEnabled": true,
+		"cookieHttpOnly": true
 	}
 },
 "database":{
@@ -368,8 +371,8 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 	}
 }
 
-var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
-var uploadPath = fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator)
+var ConfigPath = filepath.Join(gfile.Pwd(), "manifest", "config", "config.yaml")
+var uploadPath = filepath.Join(gfile.Pwd(), "resource")
 
 // ConfigInit 初始化配置文件
 func ConfigInit() {
@@ -384,12 +387,12 @@ func ConfigInit() {
 
 	if !gfile.IsDir(uploadPath) {
 		_ = gfile.Mkdir(uploadPath)
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(filepath.Join(gfile.Pwd(), "resource", "template"))
+		_ = gfile.Mkdir(filepath.Join(gfile.Pwd(), "resource", "scripts"))
+		_ = gfile.Mkdir(filepath.Join(gfile.Pwd(), "resource", "public", "html"))
+		_ = gfile.Mkdir(filepath.Join(gfile.Pwd(), "resource", "public", "resource", "css"))
+		_ = gfile.Mkdir(filepath.Join(gfile.Pwd(), "resource", "public", "resource", "image"))
+		_ = gfile.Mkdir(filepath.Join(gfile.Pwd(), "resource", "public", "resource", "js"))
 	}
 	g.Log().Info(gctx.New(), "正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
