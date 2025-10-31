@@ -188,7 +188,6 @@ func MiddlewareError(r *ghttp.Request) {
 	}
 	if err := r.GetError(); err != nil {
 		bo := gstr.Contains(err.Error(), ": ")
-		msg := ""
 		if bo {
 			msg = gstr.SubStrFromEx(err.Error(), ": ")
 		} else {
