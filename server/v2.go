@@ -267,7 +267,7 @@ const BaseConfig = `{
 		"accessLogEnable":true,
 		"accessLogPattern":"access-{Ymd}.log",
         "fileServerEnabled": true,
-		"cookieHttpOnly": true
+		"cookieDomain": "http://localhost"
 	}
 },
 "database":{
@@ -285,7 +285,7 @@ const BaseConfig = `{
 		"updatedAt":"update_time"
 	}
 },
-"skipUrl":"/dist",
+"skipUrl":"/",
 "openAPITitle": "",
 "openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
 "openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
