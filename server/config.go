@@ -16,6 +16,7 @@ type Config struct {
 }
 
 func (c *Config) SetDefaultLoggerConfig() {
+	c.Logger = new(Logger)
 	c.Logger.Path = "./log/"
 	c.Logger.File = "access-{Ymd}.log"
 	c.Logger.Level = "info"
@@ -30,6 +31,7 @@ func (c *Config) SetDefaultLoggerConfig() {
 }
 
 func (c *Config) SetDefaultDatabaseConfig() {
+	c.Database = new(Database)
 	c.Database.Default.Host = "127.0.0.1"
 	c.Database.Default.Port = "3306"
 	c.Database.Default.User = ""
@@ -108,6 +110,7 @@ func DefaultConfig() *Config {
 }
 
 func (c *Config) SetDefaultServerConfig() {
+	c.Server = new(Server)
 	c.Server.Default.Address = "127.0.0.1:8080"
 	c.Server.Default.LogPath = "./log/"
 	c.Server.Default.LogStdout = true
