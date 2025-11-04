@@ -36,7 +36,7 @@ func (c *Config) SetDefaultDatabaseConfig() {
 	c.Database.Default.Pass = ""
 	c.Database.Default.Name = ""
 	c.Database.Default.Type = "mysql"
-	c.Database.Default.Timezone = "Asia/Shanghai"
+	c.Database.Default.Timezone = "Local"
 	c.Database.Default.Debug = true
 	c.Database.Default.Charset = "utf8mb4"
 	c.Database.Default.CreatedAt = "created_at"
