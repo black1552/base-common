@@ -93,7 +93,7 @@ type Server struct {
 }
 
 func DefaultConfig() *Config {
-	cfg := &Config{}
+	cfg := new(Config)
 	cfg.SetDefaultDatabaseConfig()
 	cfg.SetDefaultLoggerConfig()
 	cfg.SetDefaultServerConfig()
