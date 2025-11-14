@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/gogf/gf/v2/os/glog"
@@ -255,57 +256,6 @@ func CreateFileDir() error {
 	return nil
 }
 
-const BaseConfig = `{
-"server":{
-	"default":{
-		"address":"127.0.0.1:8080",
-		"logPath":"./log/",
-		"logStdout":true,
-		"errorStack":true,
-		"errorLogEnabled":true,
-		"errorLogPattern":"error-{Ymd}.log",
-		"accessLogEnable":true,
-		"accessLogPattern":"access-{Ymd}.log",
-        "fileServerEnabled": true
-	}
-},
-"database":{
-	"default":{
-		"host":"127.0.0.1",
-		"port":"3306",
-		"user":"",
-		"pass":"",
-		"name":"",
-		"type":"mysql",
-  		"timezone":"Local",
-		"debug":false,
-		"charset":"utf8mb4",
-		"createdAt":"create_time",
-		"updatedAt":"update_time"
-	}
-},
-"skipUrl":"/dist",
-"openAPITitle": "",
-"openAPIDescription": "Api列表 包含各端接口信息 字段注释 枚举说明",
-"openAPIUrl": "https://panel.magicany.cc:8888/btpanel",
-"openAPIName": "",
-"doMain": ["localhost","127.0.0.1"],
-"openAPIVersion":"v1.0",
-"logger":{
-	"path":"./log/",
-	"file":"{Y-m-d}.log",
-	"level":"all",
-	"timeFormat":"2006-01-02 15:04:05",
-	"ctxKeys":[],
-	"header":true,
-	"stdout":true,
- 	"rotateSize":"2M",
-  	"rotateBackupLimit":50,
-	"stdoutColorDisabled":false,
-	"writerColorEnable":true
-}
-}`
-
 func AuthLoginSession(ctx context.Context, sessionKey string) {
 	ti, err := g.RequestFromCtx(ctx).Session.Get(sessionKey+"LoginTime", "")
 	if err != nil {
@@ -399,8 +349,8 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 	}
 }
 
-var ConfigPath = gfile.Pwd() + "/manifest/config/config.toml"
-var uploadPath = fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator)
+var ConfigPath = filepath.Join(gfile.Pwd(), "manifest", "config", "config.yaml")
+var uploadPath = filepath.Join(gfile.Pwd(), "resource")
 
 // Start 启动服务
 /*
