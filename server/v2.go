@@ -8,9 +8,7 @@ import (
 
 	"github.com/gogf/gf/v2/os/glog"
 
-	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/encoding/gyaml"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/net/goai"
@@ -401,76 +399,8 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 	}
 }
 
-var ConfigPath = gfile.Pwd() + "/manifest/config/config.yaml"
+var ConfigPath = gfile.Pwd() + "/manifest/config/config.toml"
 var uploadPath = fmt.Sprintf("%s%vresource", gfile.Pwd(), gfile.Separator)
-
-// ConfigInit 初始化配置文件
-func ConfigInit() {
-	json, err := gjson.Decode(BaseConfig)
-	if err != nil {
-		g.Log().Error(gctx.New(), "配置模板解析失败", err)
-	}
-	yaml, err := gyaml.Encode(json)
-	if err != nil {
-		g.Log().Error(gctx.New(), "转换yaml失败", err)
-	}
-
-	if !gfile.IsDir(uploadPath) {
-		_ = gfile.Mkdir(uploadPath)
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-	}
-	g.Log().Info(gctx.New(), "正在检查配置文件", gfile.IsFile(ConfigPath))
-	if !gfile.IsFile(ConfigPath) {
-		g.Log().Info(gctx.New(), "正在创建配置文件", ConfigPath)
-		_, _ = gfile.Create(ConfigPath)
-		g.Log().Info(gctx.New(), "正在写入配置文件", ConfigPath)
-		_ = gfile.PutContents(ConfigPath, gconv.String(yaml))
-		g.Log().Info(gctx.New(), "配置文件创建成功！")
-	} else {
-		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
-	}
-}
-
-// CreateDB 创建数据库配置
-/*
- * @param ctx context.Context
- * @param sqlHost string 数据库地址
- * @param sqlPort string 数据库端口
- * @param sqlRoot string 数据库用户名
- * @param sqlPass string 数据库密码
- * @param baseName string 数据库名
- * @param debug bool 是否开启调试模式
- */
-func CreateDB(ctx context.Context, sqlHost, sqlPort, sqlRoot, sqlPass, baseName string, debug bool) {
-	cfg := gcfg.Instance()
-	for {
-		cfgBase, _ := cfg.Get(ctx, "database")
-		if cfgBase == nil {
-			gdb.SetConfig(gdb.Config{
-				"default": gdb.ConfigGroup{
-					gdb.ConfigNode{
-						Host:      sqlHost,
-						Port:      sqlPort,
-						User:      sqlRoot,
-						Pass:      sqlPass,
-						Name:      baseName,
-						Timezone:  "Local",
-						Type:      "mysql",
-						Role:      "master",
-						CreatedAt: "create_time",
-						UpdatedAt: "update_time",
-						Debug:     debug,
-					},
-				}})
-		}
-		time.Sleep(time.Minute * 10)
-	}
-}
 
 // Start 启动服务
 /*
