@@ -308,44 +308,23 @@ func LoginCountSession(ctx context.Context, sessionKey string) {
 }
 
 func enhanceOpenAPIDoc(s *ghttp.Server) {
-	cfg := gcfg.Instance()
-	apiTitle, err := cfg.Get(gctx.New(), "openAPITitle", "Api列表")
-	if err != nil {
-		panic(err)
-	}
-	apiDes, err := cfg.Get(gctx.New(), "openAPIDescription", "Api列表 包含各端接口信息 字段注释 枚举说明")
-	if err != nil {
-		panic(err)
-	}
-	apiUrl, err := cfg.Get(gctx.New(), "openAPIUrl", "https://panel.magicany.cc:8888/btpanel")
-	if err != nil {
-		panic(err)
-	}
-	apiName, err := cfg.Get(gctx.New(), "openAPIName", "Api列表")
-	if err != nil {
-		panic(err)
-	}
-	version, err := cfg.Get(gctx.New(), "openAPIVersion", "Api列表")
-	if err != nil {
-		panic(err)
-	}
 	openapi := s.GetOpenApi()
 	openapi.Config.CommonResponse = ghttp.DefaultHandlerResponse{}
 	openapi.Config.CommonResponseDataField = `Data`
 
 	// API description.
 	openapi.Info = goai.Info{
-		Title:       gconv.String(apiTitle),
-		Description: gconv.String(apiDes),
+		Title:       "Api列表",
+		Description: "Api列表 包含各端接口信息 字段注释 枚举说明",
 		Contact: &goai.Contact{
-			Name: gconv.String(apiName),
-			URL:  gconv.String(apiUrl),
+			Name: "Api列表",
+			URL:  "https://panel.magicany.cc:8888/btpanel",
 		},
 		License: &goai.License{
 			Name: "马国栋",
 			URL:  "https://panel.magicany.cc:8888/btpanel",
 		},
-		Version: gconv.String(version),
+		Version: "Api列表",
 	}
 }
 
