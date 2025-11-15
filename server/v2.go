@@ -402,6 +402,7 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 // @param s *ghttp.Server 服务实例
 // @param address string 监听地址
 func SetConfigAndRun(s *ghttp.Server, address string) {
+	glog.Info(gctx.New(), "正在设置日志配置")
 	logCfg := glog.Config{
 		File:              "{Y-m-d}.log",
 		Path:              gfile.Join(gfile.Pwd(), "log"),
@@ -412,21 +413,33 @@ func SetConfigAndRun(s *ghttp.Server, address string) {
 		WriterColorEnable: true,
 		Level:             glog.LEVEL_ALL,
 	}
-	_ = glog.SetConfig(logCfg)
+	err := glog.SetConfig(logCfg)
+	if err != nil {
+		panic(fmt.Sprintf("设置日志配置失败: %+v", err))
+	}
 	log := glog.New()
 	logCfg.Level = glog.LEVEL_ERRO
 	logCfg.StdoutPrint = false
 	logCfg.Path = gfile.Join(gfile.Pwd(), "resource", "log")
-	_ = log.SetConfig(logCfg)
+	err = log.SetConfig(logCfg)
+	if err != nil {
+		panic(fmt.Sprintf("设置服务日志配置失败: %+v", err))
+	}
 	s.SetAccessLogEnabled(false)
 	s.SetErrorLogEnabled(true)
-	_ = s.SetConfig(ghttp.ServerConfig{
+	err = s.SetConfig(ghttp.ServerConfig{
 		ErrorLogPattern: "error-{Ymd}.log",
 	})
+	if err != nil {
+		panic(fmt.Sprintf("添加服务日志配置失败: %+v", err))
+	}
 	s.SetLogger(log)
+	glog.Info(gctx.New(), "设置日志配置完成")
+	glog.Info(gctx.New(), "正在设置服务监听")
 	s.SetAddr(address)
 	s.SetFileServerEnabled(true)
 	s.SetCookieDomain(fmt.Sprintf("http://%s", address))
+	glog.Info(gctx.New(), "设置服务监听完成,执行自动服务")
 	s.Run()
 }
 

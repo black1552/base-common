@@ -9,6 +9,7 @@ import (
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -153,6 +154,7 @@ func DefaultConfigInit() {
 // @param debug 数据库调试模式
 // @param prefix 表前缀可空
 func DefaultSqliteConfigInit(path string, autoTime []string, debug bool, prefix ...string) {
+	glog.Info(gctx.New(), "正在检查文件夹", gfile.IsFile(uploadPath))
 	if !gfile.IsDir(uploadPath) {
 		_ = gfile.Mkdir(uploadPath)
 		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
@@ -162,6 +164,7 @@ func DefaultSqliteConfigInit(path string, autoTime []string, debug bool, prefix 
 		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
 		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
 	}
+	g.Log().Info(gctx.New(), "正在设置数据库配置")
 	node := gdb.ConfigNode{
 		Link:      fmt.Sprintf("sqlite::@file(%s)", path),
 		Timezone:  "Local",
@@ -181,4 +184,5 @@ func DefaultSqliteConfigInit(path string, autoTime []string, debug bool, prefix 
 	if err != nil {
 		g.Log().Error(gctx.New(), "设置数据库配置失败", err)
 	}
+	g.Log().Info(gctx.New(), "设置数据库配置成功")
 }
