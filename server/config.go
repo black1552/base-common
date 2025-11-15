@@ -148,7 +148,10 @@ func DefaultConfigInit() {
 }
 
 // DefaultSqliteConfigInit 创建默认的sqlite数据库配置 不会再生成配置文件
-// sqlType sqlite3\sqlite
+// @param path sqlite数据库路径
+// @param autoTime 自动时间字段[]string{"create_time","update_time"}
+// @param debug 数据库调试模式
+// @param prefix 表前缀可空
 func DefaultSqliteConfigInit(path string, autoTime []string, debug bool, prefix ...string) {
 	if !gfile.IsDir(uploadPath) {
 		_ = gfile.Mkdir(uploadPath)

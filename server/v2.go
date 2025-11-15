@@ -365,7 +365,7 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s := g.Server()
 	s.SetDumpRouterMap(false)
 	s.AddStaticPath(fmt.Sprintf("%vstatic", gfile.Separator), uploadPath)
-	err := s.SetLogPath(fmt.Sprintf("%s%vresource%vlog", gfile.Pwd(), gfile.Separator, gfile.Separator))
+	err := s.SetLogPath(gfile.Join(gfile.Pwd(), "resource", "log"))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -387,33 +387,47 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.SetAccessLogEnabled(true)
 	s.SetSessionMaxAge(maxSessionTime)
 	err = s.SetConfigWithMap(g.Map{
-		"sessionPath": fmt.Sprintf("%s%vresource%vsession", gfile.Pwd(), gfile.Separator, gfile.Separator),
+		"sessionPath": gfile.Join(gfile.Pwd(), "resource", "session"),
 		"serverAgent": agent,
 	})
 	if err != nil {
 		fmt.Println(err)
 	}
 	s.Use(MiddlewareError)
-	skipUrl, _ := g.Cfg().Get(gctx.New(), "skipUrl", "")
-	if gconv.String(skipUrl) != "" {
-		isFile := gfile.IsFile(gfile.Pwd() + gfile.Separator + "resource" + gfile.Separator + gconv.String(skipUrl))
-		if isFile {
-			s.AddStaticPath(gconv.String(skipUrl), gfile.Pwd()+gfile.Separator+"resource"+gfile.Separator+gconv.String(skipUrl))
-			s.BindHandler("/", func(r *ghttp.Request) {
-				r.Response.RedirectTo(gconv.String(skipUrl) + "/index.html")
-			})
-		}
-	} else {
-		isFile := gfile.IsFile(gfile.Pwd() + gfile.Separator + "resource" + gfile.Separator + "dist/index.html")
-		if isFile {
-			s.AddStaticPath("/dist/index.html", gfile.Pwd()+gfile.Separator+"resource"+gfile.Separator+"dist/index.html")
-			s.BindHandler("/", func(r *ghttp.Request) {
-				r.Response.RedirectTo("/dist/index.html")
-			})
-		}
-	}
 	enhanceOpenAPIDoc(s)
 	return s
+}
+
+// SetConfigAndRun 设置配置并运行服务
+// @param s *ghttp.Server 服务实例
+// @param address string 监听地址
+func SetConfigAndRun(s *ghttp.Server, address string) {
+	logCfg := glog.Config{
+		File:              "{Y-m-d}.log",
+		Path:              gfile.Join(gfile.Pwd(), "log"),
+		RotateBackupLimit: 10,
+		RotateSize:        1024 * 1024 * 2,
+		StdoutPrint:       true,
+		TimeFormat:        "2006-01-02 15:04:05",
+		WriterColorEnable: true,
+		Level:             glog.LEVEL_ALL,
+	}
+	_ = glog.SetConfig(logCfg)
+	log := glog.New()
+	logCfg.Level = glog.LEVEL_ERRO
+	logCfg.StdoutPrint = false
+	logCfg.Path = gfile.Join(gfile.Pwd(), "resource", "log")
+	_ = log.SetConfig(logCfg)
+	s.SetAccessLogEnabled(false)
+	s.SetErrorLogEnabled(true)
+	_ = s.SetConfig(ghttp.ServerConfig{
+		ErrorLogPattern: "error-{Ymd}.log",
+	})
+	s.SetLogger(log)
+	s.SetAddr(address)
+	s.SetFileServerEnabled(true)
+	s.SetCookieDomain(fmt.Sprintf("http://%s", address))
+	s.Run()
 }
 
 func CORSMiddleware(r *ghttp.Request) {
