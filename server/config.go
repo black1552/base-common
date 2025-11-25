@@ -168,7 +168,6 @@ func DefaultSqliteConfigInit(path string, autoTime []string, debug bool, prefix 
 	node := gdb.ConfigNode{
 		Link:      fmt.Sprintf("sqlite::@file(%s)", path),
 		Timezone:  "Local",
-		Role:      "master",
 		Charset:   "utf8",
 		CreatedAt: autoTime[0],
 		UpdatedAt: autoTime[1],
