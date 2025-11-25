@@ -13,7 +13,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func CreateExcel[T any](sheetName string, headers, cols []string, datas T, drops []DropdownCol, fileName string, centerCol []string, creatCol func(f *excelize.File, cols []string, data T) *excelize.File) string {
+func CreateExcel(sheetName string, headers, cols []string, drops []DropdownCol, fileName string, centerCol []string, creatCol func(f *excelize.File, cols []string) *excelize.File) string {
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -29,7 +29,7 @@ func CreateExcel[T any](sheetName string, headers, cols []string, datas T, drops
 	for i, v := range headers {
 		_ = f.SetCellValue("sheet1", cols[i]+"1", v)
 	}
-	f = creatCol(f, cols, datas)
+	f = creatCol(f, cols)
 	if !g.IsEmpty(drops) {
 		ExcelDownCol(f, drops)
 	}
