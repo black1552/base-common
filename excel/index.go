@@ -8,8 +8,6 @@ import (
 	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -126,29 +124,6 @@ func TransMap(maps map[string]string, key string, isCn bool) string {
 	} else {
 		return ""
 	}
-}
-
-func Float64Trans(value string) *float64 {
-	if value == "" {
-		return nil
-	}
-	f := gconv.Float64(value)
-	return &f
-}
-
-func IntTrans(value string) *int {
-	if value == "" {
-		return nil
-	}
-	i := gconv.Int(value)
-	return &i
-}
-
-func TimeTrans(value string) *gtime.Time {
-	if value == "" {
-		return nil
-	}
-	return gconv.GTime(value)
 }
 
 func CenterCol(f *excelize.File) int {

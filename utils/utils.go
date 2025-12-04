@@ -14,7 +14,9 @@ import (
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gres"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/nfnt/resize"
 )
 
@@ -163,4 +165,33 @@ func GetFileList(path string) []string {
 		}
 	}
 	return pathArr.Slice()
+}
+func Float64Trans(value string) *float64 {
+	if value == "" {
+		return nil
+	}
+	f := gconv.Float64(value)
+	return &f
+}
+
+func IntTrans(value string) *int {
+	if value == "" {
+		return nil
+	}
+	i := gconv.Int(value)
+	return &i
+}
+func StrTrans(value string) *string {
+	if value == "" {
+		return nil
+	}
+	i := gconv.String(value)
+	return &i
+}
+
+func TimeTrans(value string) *gtime.Time {
+	if value == "" {
+		return nil
+	}
+	return gconv.GTime(value)
 }
