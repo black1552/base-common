@@ -153,8 +153,6 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
-	// r.Response.CORSDefault()
-	r.Session.RegenerateId(true)
 	r.Middleware.Next()
 	var (
 		msg    string
