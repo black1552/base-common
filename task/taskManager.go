@@ -3,23 +3,21 @@ package task
 import "sync"
 
 // TaskManager 任务管理器
-type TaskManager struct {
+type sTaskManager struct {
 	tasks map[string]*Task
 	mutex sync.RWMutex
 }
 
-func init() {
-	NewTaskManager()
-}
+var Manager = &sTaskManager{}
 
-func NewTaskManager() *TaskManager {
-	return &TaskManager{
+func init() {
+	Manager = &sTaskManager{
 		tasks: make(map[string]*Task),
 	}
 }
 
 // CreateTask 创建任务
-func (m *TaskManager) CreateTask(token string, total int) {
+func (m *sTaskManager) CreateTask(token string, total int) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.tasks[token] = &Task{
@@ -32,7 +30,7 @@ func (m *TaskManager) CreateTask(token string, total int) {
 }
 
 // UpdateProgress 更新任务进度
-func (m *TaskManager) UpdateProgress(token string, processed int, message string) {
+func (m *sTaskManager) UpdateProgress(token string, processed int, message string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	if task, exists := m.tasks[token]; exists {
@@ -42,7 +40,7 @@ func (m *TaskManager) UpdateProgress(token string, processed int, message string
 }
 
 // CompleteTask 完成任务
-func (m *TaskManager) CompleteTask(token string, message string, path string) {
+func (m *sTaskManager) CompleteTask(token string, message string, path string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	if task, exists := m.tasks[token]; exists {
@@ -53,7 +51,7 @@ func (m *TaskManager) CompleteTask(token string, message string, path string) {
 }
 
 // FailTask 失败任务
-func (m *TaskManager) FailTask(token string, message string) {
+func (m *sTaskManager) FailTask(token string, message string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	if task, exists := m.tasks[token]; exists {
@@ -63,7 +61,7 @@ func (m *TaskManager) FailTask(token string, message string) {
 }
 
 // GetTask 获取任务
-func (m *TaskManager) GetTask(token string) (*Task, bool) {
+func (m *sTaskManager) GetTask(token string) (*Task, bool) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 	task, exists := m.tasks[token]
@@ -71,7 +69,7 @@ func (m *TaskManager) GetTask(token string) (*Task, bool) {
 }
 
 // RemoveTask 移除任务
-func (m *TaskManager) RemoveTask(token string) {
+func (m *sTaskManager) RemoveTask(token string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	delete(m.tasks, token)
