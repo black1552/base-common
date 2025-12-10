@@ -166,11 +166,13 @@ func MiddlewareError(r *ghttp.Request) {
 		json.Code = 1
 		if r.Response.BufferLength() > 0 {
 			glog.Infof(r.Context(), "Buffer:%s", r.Response.BufferString())
-			if gjson.Valid(r.Response.Buffer()) {
-				js, _ := gjson.DecodeToJson(r.Response.Buffer())
-				json.Data = js
-			} else {
-				msg = r.Response.BufferWriter.BufferString()
+			if !gstr.Contains(r.RequestURI, "/swagger/") || !gstr.HasSuffix(r.RequestURI, "/api.json") {
+				if gjson.Valid(r.Response.Buffer()) {
+					js, _ := gjson.DecodeToJson(r.Response.Buffer())
+					json.Data = js
+				} else {
+					msg = r.Response.BufferWriter.BufferString()
+				}
 			}
 			r.Response.BufferWriter.ClearBuffer()
 		} else {
