@@ -9,7 +9,6 @@ import (
 
 	"github.com/gogf/gf/v2/os/glog"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/net/goai"
@@ -154,58 +153,36 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
 	r.Middleware.Next()
-	if !gstr.Contains(r.RequestURI, "/swagger/") || !gstr.HasSuffix(r.RequestURI, "/api.json") {
-		var (
-			msg    string
-			err    = r.GetError()
-			res    = r.GetHandlerResponse()
-			status = r.Response.Status
-		)
-		json := new(Json)
-		json.Data = res
-		if err == nil {
-			json.Code = 1
-			if r.Response.BufferLength() > 0 {
-				glog.Infof(r.Context(), "Buffer:%s", r.Response.BufferString())
-				if gjson.Valid(r.Response.Buffer()) {
-					js, _ := gjson.DecodeToJson(r.Response.Buffer())
-					json.Data = js
-				} else {
-					msg = r.Response.BufferWriter.BufferString()
-				}
-				r.Response.BufferWriter.ClearBuffer()
-			} else {
-				msg = "操作成功"
-			}
-		} else {
-			bo := gstr.Contains(err.Error(), ": ")
-			if bo {
-				msg = gstr.SubStrFromEx(err.Error(), ": ")
-			} else {
-				msg = err.Error()
-			}
-		}
-		if err := r.GetError(); err != nil {
-			bo := gstr.Contains(err.Error(), ": ")
-			msg := ""
-			if bo {
-				msg = gstr.SubStrFromEx(err.Error(), ": ")
-			} else {
-				msg = err.Error()
-			}
-			r.Response.ClearBuffer()
-			json.Code = 0
-			json.Msg = msg
-			r.Response.Status = http.StatusInternalServerError
-		} else {
-			json.Msg = msg
-			if status == 401 {
-				json.Code = 0
-				json.Msg = "请登录后操作"
-			}
-		}
-		r.Response.WriteJson(json)
+	if r.Response.BufferLength() > 0 {
+		return
 	}
+	var (
+		msg    string
+		res    = r.GetHandlerResponse()
+		status = r.Response.Status
+	)
+	json := new(Json)
+	json.Data = res
+	if err := r.GetError(); err != nil {
+		bo := gstr.Contains(err.Error(), ": ")
+		msg := ""
+		if bo {
+			msg = gstr.SubStrFromEx(err.Error(), ": ")
+		} else {
+			msg = err.Error()
+		}
+		r.Response.ClearBuffer()
+		json.Code = 0
+		json.Msg = msg
+		r.Response.Status = http.StatusInternalServerError
+	} else {
+		json.Msg = msg
+		if status == 401 {
+			json.Code = 0
+			json.Msg = "请登录后操作"
+		}
+	}
+	r.Response.WriteJson(json)
 }
 
 // AuthBase 鉴权中间件，只有前端或者后端登录成功之后才能通过
