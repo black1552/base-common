@@ -153,10 +153,8 @@ func SetPage(page, limit, total int, data interface{}) *PageSize {
 // MiddlewareError 异常处理中间件
 func MiddlewareError(r *ghttp.Request) {
 	r.Middleware.Next()
-	if r.Response.BufferLength() > 0 {
-		return
-	}
 	var (
+		err    = r.GetError()
 		msg    string
 		res    = r.GetHandlerResponse()
 		status = r.Response.Status
@@ -165,9 +163,8 @@ func MiddlewareError(r *ghttp.Request) {
 	json.Code = 1
 	json.Data = res
 	json.Msg = "操作成功"
-	if err := r.GetError(); err != nil {
+	if err != nil {
 		bo := gstr.Contains(err.Error(), ": ")
-		msg := ""
 		if bo {
 			msg = gstr.SubStrFromEx(err.Error(), ": ")
 		} else {
@@ -177,12 +174,13 @@ func MiddlewareError(r *ghttp.Request) {
 		json.Code = 0
 		json.Msg = msg
 		r.Response.Status = http.StatusInternalServerError
-	} else {
-		json.Msg = msg
-		if status == 401 {
-			json.Code = 0
-			json.Msg = "请登录后操作"
-		}
+	}
+	if r.Response.BufferLength() > 0 {
+		return
+	}
+	if status == 401 {
+		json.Code = 0
+		json.Msg = "请登录后操作"
 	}
 	r.Response.WriteJson(json)
 }
