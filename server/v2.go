@@ -162,7 +162,9 @@ func MiddlewareError(r *ghttp.Request) {
 		status = r.Response.Status
 	)
 	json := new(Json)
+	json.Code = 1
 	json.Data = res
+	json.Msg = "操作成功"
 	if err := r.GetError(); err != nil {
 		bo := gstr.Contains(err.Error(), ": ")
 		msg := ""
