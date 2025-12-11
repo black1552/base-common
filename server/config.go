@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gogf/gf/v2/database/gdb"
-	"github.com/gogf/gf/v2/encoding/gtoml"
+	"github.com/gogf/gf/v2/encoding/gyaml"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gcfg"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -122,7 +122,7 @@ func DefaultConfigInit() {
 		UpdatedAt: "update_time",
 	}}
 	DefaultConfig.Database = database
-	toml, err := gtoml.Encode(DefaultConfig)
+	yaml, err := gyaml.Encode(DefaultConfig)
 	if err != nil {
 		g.Log().Error(gctx.New(), "转换toml失败", err)
 	}
@@ -141,7 +141,7 @@ func DefaultConfigInit() {
 		g.Log().Info(gctx.New(), "正在创建配置文件", ConfigPath)
 		_, _ = gfile.Create(ConfigPath)
 		g.Log().Info(gctx.New(), "正在写入配置文件", ConfigPath)
-		_ = gfile.PutContents(ConfigPath, gconv.String(toml))
+		_ = gfile.PutContents(ConfigPath, gconv.String(yaml))
 		g.Log().Info(gctx.New(), "配置文件创建成功！")
 	} else {
 		gcfg.Instance().GetAdapter().(*gcfg.AdapterFile).SetFileName(ConfigPath)
