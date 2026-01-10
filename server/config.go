@@ -24,6 +24,7 @@ type Config struct {
 	DoMain             []string        `json:"doMain"`
 	OpenAPIVersion     string          `json:"openAPIVersion"`
 	Logger             LoggerConfig    `json:"logger"`
+	Dns                string          `json:"dns"`
 }
 
 type ServiceConfig struct {
@@ -94,6 +95,7 @@ var DefaultConfig = Config{
 	OpenAPIName:        "",
 	DoMain:             []string{"localhost", "127.0.0.1"},
 	OpenAPIVersion:     "v1.0",
+	Dns:                "root:123456@tcp(127.0.0.1:3306)/test",
 	Logger: LoggerConfig{
 		Path:              "./log/",
 		File:              "access-{Ymd}.log",
@@ -124,7 +126,7 @@ func DefaultConfigInit() {
 	DefaultConfig.Database = database
 	yaml, err := gyaml.Encode(DefaultConfig)
 	if err != nil {
-		g.Log().Error(gctx.New(), "转换toml失败", err)
+		g.Log().Error(gctx.New(), "转换yaml失败", err)
 	}
 
 	if !gfile.IsDir(uploadPath) {
