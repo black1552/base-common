@@ -15,8 +15,16 @@ var (
 	db  *gorm.DB
 )
 
-func NewAutoMigrate() {
-	ctx = gctx.New()
+type AutoMigrate struct {
+	ctx context.Context
+	db  *gorm.DB
+}
+
+var am *AutoMigrate
+
+func init() {
+	am = &AutoMigrate{}
+	am.ctx = gctx.New()
 	err := g.DB().PingMaster()
 	if err != nil {
 		g.Log().Error(ctx, "数据库连接失败", err)
@@ -31,7 +39,7 @@ func NewAutoMigrate() {
 		g.Log().Error(ctx, "gormDNS未配置", "请检查配置文件")
 		return
 	}
-	gormDb, err := gorm.Open(mysql.New(mysql.Config{
+	am.db, err = gorm.Open(mysql.New(mysql.Config{
 		DSN:               dns.String(),
 		DefaultStringSize: 255,
 	}), &gorm.Config{})
@@ -39,15 +47,13 @@ func NewAutoMigrate() {
 		g.Log().Error(ctx, "gorm连接数据库失败", err)
 		return
 	}
-	db = gormDb
 }
 func SetAutoMigrate(models ...interface{}) {
-	NewAutoMigrate()
-	if g.IsNil(db) {
+	if g.IsNil(am.db) {
 		g.Log().Error(ctx, "数据库连接失败")
 		return
 	}
-	db = db.Set("gorm:table_options", "ENGINE=InnoDB")
+	db = am.db.Set("gorm:table_options", "ENGINE=InnoDB")
 	err := db.AutoMigrate(models...)
 	if err != nil {
 		g.Log().Error(ctx, "数据库迁移失败", err)
