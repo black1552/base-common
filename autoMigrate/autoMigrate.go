@@ -35,11 +35,16 @@ func NewAutoMigrate() {
 		DSN:               dns.String(),
 		DefaultStringSize: 255,
 	}), &gorm.Config{})
+	if err != nil {
+		g.Log().Error(ctx, "gorm连接数据库失败", err)
+		return
+	}
 	db = gormDb
 }
 func SetAutoMigrate(models ...interface{}) {
 	NewAutoMigrate()
 	if g.IsNil(db) {
+		g.Log().Error(ctx, "数据库连接失败")
 		return
 	}
 	db = db.Set("gorm:table_options", "ENGINE=InnoDB")

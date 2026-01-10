@@ -131,12 +131,12 @@ func DefaultConfigInit() {
 
 	if !gfile.IsDir(uploadPath) {
 		_ = gfile.Mkdir(uploadPath)
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "template"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "scripts"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "html"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "resource", "css"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "resource", "image"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "resource", "js"))
 	}
 	g.Log().Info(gctx.New(), "正在检查配置文件", gfile.IsFile(ConfigPath))
 	if !gfile.IsFile(ConfigPath) {
@@ -159,12 +159,12 @@ func DefaultSqliteConfigInit(path string, autoTime []string, debug bool, prefix 
 	glog.Info(gctx.New(), "正在检查文件夹", gfile.IsFile(uploadPath))
 	if !gfile.IsDir(uploadPath) {
 		_ = gfile.Mkdir(uploadPath)
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vtemplate", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vscripts", gfile.Pwd(), gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vhtml", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vcss", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vimage", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
-		_ = gfile.Mkdir(fmt.Sprintf("%s%vresource%vpublic%vresource%vjs", gfile.Pwd(), gfile.Separator, gfile.Separator, gfile.Separator, gfile.Separator))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "template"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "scripts"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "html"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "resource", "css"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "resource", "image"))
+		_ = gfile.Mkdir(gfile.Join(gfile.Pwd(), "resource", "public", "resource", "js"))
 	}
 	g.Log().Info(gctx.New(), "正在设置数据库配置")
 	node := gdb.ConfigNode{
