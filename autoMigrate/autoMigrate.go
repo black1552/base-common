@@ -19,6 +19,7 @@ var (
 type AutoMigrate struct {
 	ctx context.Context
 	db  *gorm.DB
+	dns string
 }
 
 var am *AutoMigrate
@@ -40,6 +41,7 @@ func New() {
 		g.Log().Error(ctx, "gormDNS未配置", "请检查配置文件")
 		return
 	}
+	am.dns = dns.String()
 	am.db, err = gorm.Open(mysql.New(mysql.Config{
 		DSN:               dns.String(),
 		DefaultStringSize: 255,
@@ -59,5 +61,15 @@ func SetAutoMigrate(models ...interface{}) {
 	err := db.AutoMigrate(models...)
 	if err != nil {
 		g.Log().Error(ctx, "数据库迁移失败", err)
+	}
+}
+
+// DropColumn
+// 删除字段
+// 例：DropColumn(&User{}, "Sex")
+func DropColumn(dst interface{}, name string) {
+	err := am.db.Migrator().DropColumn(dst, name)
+	if err != nil {
+		g.Log().Error(ctx, "数据库删除字段失败", err)
 	}
 }
