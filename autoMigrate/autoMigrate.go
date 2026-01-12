@@ -63,6 +63,16 @@ func SetAutoMigrate(models ...interface{}) {
 		g.Log().Error(ctx, "数据库迁移失败", err)
 	}
 }
+func RenameColumn(dst interface{}, name, newName string) {
+	if am.db.Migrator().HasColumn(dst, name) {
+		err := am.db.Migrator().RenameColumn(dst, name, newName)
+		if err != nil {
+			g.Log().Error(am.ctx, "数据库修改字段失败", err)
+		}
+	} else {
+		g.Log().Info(am.ctx, "数据库字段不存在", name)
+	}
+}
 
 // DropColumn
 // 删除字段
