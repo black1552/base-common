@@ -68,8 +68,12 @@ func SetAutoMigrate(models ...interface{}) {
 // 删除字段
 // 例：DropColumn(&User{}, "Sex")
 func DropColumn(dst interface{}, name string) {
-	err := am.db.Migrator().DropColumn(dst, name)
-	if err != nil {
-		g.Log().Error(ctx, "数据库删除字段失败", err)
+	if am.db.Migrator().HasColumn(dst, name) {
+		err := am.db.Migrator().DropColumn(dst, name)
+		if err != nil {
+			g.Log().Error(am.ctx, "数据库删除字段失败", err)
+		}
+	} else {
+		g.Log().Info(am.ctx, "数据库字段不存在", name)
 	}
 }
