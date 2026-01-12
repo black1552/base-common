@@ -23,7 +23,7 @@ type AutoMigrate struct {
 
 var am *AutoMigrate
 
-func init() {
+func New() {
 	am = &AutoMigrate{}
 	am.ctx = gctx.New()
 	err := g.DB().PingMaster()
@@ -50,6 +50,7 @@ func init() {
 	}
 }
 func SetAutoMigrate(models ...interface{}) {
+	New()
 	if g.IsNil(am.db) {
 		g.Log().Error(ctx, "数据库连接失败")
 		return
