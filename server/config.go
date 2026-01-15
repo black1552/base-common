@@ -14,66 +14,66 @@ import (
 )
 
 type Config struct {
-	Server             ServiceConfig   `json:"server"`
-	Database           *DatabaseConfig `json:"database"`
-	SkipUrl            string          `json:"skipUrl"`
-	OpenAPITitle       string          `json:"openAPITitle"`
-	OpenAPIDescription string          `json:"openAPIDescription"`
-	OpenAPIUrl         string          `json:"openAPIUrl"`
-	OpenAPIName        string          `json:"openAPIName"`
-	DoMain             []string        `json:"doMain"`
-	OpenAPIVersion     string          `json:"openAPIVersion"`
-	Logger             LoggerConfig    `json:"logger"`
-	Dns                string          `json:"dns"`
+	Server             ServiceConfig   `yaml:"server"`
+	Database           *DatabaseConfig `yaml:"database"`
+	SkipUrl            string          `yaml:"skipUrl"`
+	OpenAPITitle       string          `yaml:"openAPITitle"`
+	OpenAPIDescription string          `yaml:"openAPIDescription"`
+	OpenAPIUrl         string          `yaml:"openAPIUrl"`
+	OpenAPIName        string          `yaml:"openAPIName"`
+	DoMain             []string        `yaml:"doMain"`
+	OpenAPIVersion     string          `yaml:"openAPIVersion"`
+	Logger             LoggerConfig    `yaml:"logger"`
+	Dns                string          `yaml:"dns"`
 }
 
 type ServiceConfig struct {
-	Default ServiceDefault `json:"default"`
+	Default ServiceDefault `yaml:"default"`
 }
 
 type ServiceDefault struct {
-	Address           string `json:"address"`
-	LogPath           string `json:"logPath"`
-	LogStdout         bool   `json:"logStdout"`
-	ErrorStack        bool   `json:"errorStack"`
-	ErrorLogEnabled   bool   `json:"errorLogEnabled"`
-	ErrorLogPattern   string `json:"errorLogPattern"`
-	AccessLogEnable   bool   `json:"accessLogEnable"`
-	AccessLogPattern  string `json:"accessLogPattern"`
-	FileServerEnabled bool   `json:"fileServerEnabled"`
+	Address           string `yaml:"address"`
+	LogPath           string `yaml:"logPath"`
+	LogStdout         bool   `yaml:"logStdout"`
+	ErrorStack        bool   `yaml:"errorStack"`
+	ErrorLogEnabled   bool   `yaml:"errorLogEnabled"`
+	ErrorLogPattern   string `yaml:"errorLogPattern"`
+	AccessLogEnable   bool   `yaml:"accessLogEnable"`
+	AccessLogPattern  string `yaml:"accessLogPattern"`
+	FileServerEnabled bool   `yaml:"fileServerEnabled"`
 }
 
 type DatabaseConfig struct {
-	Default DatabaseDefault `json:"default"`
+	Default DatabaseDefault `yaml:"default"`
 }
 
 type DatabaseDefault struct {
-	Host      string `json:"host"`
-	Link      string `json:"link" dc:"数据库连接字符串"`
-	Port      string `json:"port"`
-	User      string `json:"user"`
-	Pass      string `json:"pass"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	Timezone  string `json:"timezone"`
-	Debug     bool   `json:"debug"`
-	Charset   string `json:"charset"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	Host      string `yaml:"host" json:"host"`
+	Link      string `yaml:"link" dc:"数据库连接字符串" json:"link"`
+	Port      string `yaml:"port" json:"port"`
+	User      string `yaml:"user" json:"user"`
+	Pass      string `yaml:"pass" json:"pass"`
+	Name      string `yaml:"name" json:"name"`
+	Type      string `yaml:"type" json:"type"`
+	Timezone  string `yaml:"timezone" json:"timezone"`
+	Debug     bool   `yaml:"debug" json:"debug"`
+	Charset   string `yaml:"charset" json:"charset"`
+	CreatedAt string `yaml:"createdAt" json:"createdAt"`
+	UpdatedAt string `yaml:"updatedAt" json:"updatedAt"`
 }
 
 type LoggerConfig struct {
-	Path                string   `json:"path"`
-	File                string   `json:"file"`
-	Level               string   `json:"level"`
-	TimeFormat          string   `json:"timeFormat"`
-	CtxKeys             []string `json:"ctxKeys"`
-	Header              bool     `json:"header"`
-	Stdout              bool     `json:"stdout"`
-	RotateSize          string   `json:"rotateSize"`
-	RotateBackupLimit   int      `json:"rotateBackupLimit"`
-	StdoutColorDisabled bool     `json:"stdoutColorDisabled"`
-	WriterColorEnable   bool     `json:"writerColorEnable"`
+	Path                string   `yaml:"path" json:"path"`
+	File                string   `yaml:"file" json:"file"`
+	Level               string   `yaml:"level" json:"level"`
+	TimeFormat          string   `yaml:"timeFormat" json:"timeFormat"`
+	CtxKeys             []string `yaml:"ctxKeys" json:"ctxKeys"`
+	Header              bool     `yaml:"header" json:"header"`
+	Stdout              bool     `yaml:"stdout" json:"stdout"`
+	RotateSize          string   `yaml:"rotateSize" json:"rotateSize"`
+	RotateBackupLimit   int      `yaml:"rotateBackupLimit" json:"rotateBackupLimit"`
+	StdoutColorDisabled bool     `yaml:"stdoutColorDisabled" json:"stdoutColorDisabled"`
+	WriterColorEnable   bool     `yaml:"writerColorEnable" json:"writerColorEnable"`
 }
 
 var DefaultConfig = Config{
