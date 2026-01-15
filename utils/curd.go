@@ -52,43 +52,55 @@ func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
 	}
 	return m
 }
-func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, page *Paginate, order any, with ...any) (items []*R, total int, err error) {
+func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, where any, page *Paginate, order any, with ...any) (items []*R, total int, err error) {
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
 	if len(with) > 0 {
 		db.With(with)
 	}
+	db = db.Where(m)
+	if !g.IsNil(where) {
+		db = db.Where(where)
+	}
 	if order != nil {
 		db = db.Order(order)
 	}
-	if g.IsNil(page) {
+	if !g.IsNil(page) {
 		db = db.Page(page.Page, page.Limit)
 	}
-	err = db.Where(m).ScanAndCount(&items, &total, false)
+	err = db.ScanAndCount(&items, &total, false)
 	return
 }
-func (c Curd[R]) ClearFieldList(ctx ctx, req any, delField []string, order any, with ...any) (items []*R, err error) {
+func (c Curd[R]) ClearFieldList(ctx ctx, req any, delField []string, where any, order any, with ...any) (items []*R, err error) {
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
+	db = db.Where(m)
+	if !g.IsNil(where) {
+		db = db.Where(where)
+	}
 	if len(with) > 0 {
 		db.With(with)
 	}
-	if order != nil {
+	if !g.IsNil(order) {
 		db = db.Order(order)
 	}
-	err = db.Where(m).Scan(&items)
+	err = db.Scan(&items)
 	return
 }
-func (c Curd[R]) ClearFieldOne(ctx ctx, req any, delField []string, order any, with ...any) (items *R, err error) {
+func (c Curd[R]) ClearFieldOne(ctx ctx, req any, delField []string, where any, order any, with ...any) (items *R, err error) {
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
+	db = db.Where(m)
+	if !g.IsNil(where) {
+		db = db.Where(where)
+	}
 	if len(with) > 0 {
 		db.With(with)
 	}
-	if order != nil {
+	if !g.IsNil(order) {
 		db = db.Order(order)
 	}
-	err = db.Where(m).Scan(&items)
+	err = db.Scan(&items)
 	return
 }
 func (c Curd[R]) Value(ctx ctx, where any, field any) (*gvar.Var, error) {
