@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 )
 
@@ -47,6 +48,9 @@ func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
 	}
 	for k, v := range m {
 		if g.IsEmpty(v) {
+			delete(m, k)
+		}
+		if gstr.Equal(k, "page") || gstr.Equal(k, "limit") {
 			delete(m, k)
 		}
 	}
