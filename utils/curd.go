@@ -12,22 +12,6 @@ import (
 
 type ctx = context.Context
 
-type ICurd[R any] interface {
-	Save(ctx ctx, data any) (id int64, err error)
-	Find(ctx ctx, primaryKey any) (model *R, err error)
-	All(ctx ctx, where any, with []any, order any, limit ...int) (items []*R, err error)
-	First(ctx ctx, where any, order ...any) (model *R, err error)
-	Paginate(ctx ctx, where any, p Paginate, with []any, order any) (paginator *Paginator[*R], err error)
-	Update(ctx ctx, where any, data any) (count int64, err error)
-	UpdatePri(ctx ctx, primaryKey any, data any) (count int64, err error)
-	Exists(ctx ctx, where any) (exists bool, err error)
-	Delete(ctx ctx, primaryKey any) error
-	Value(ctx ctx, where any, field any) (*gvar.Var, error)
-	Sum(ctx ctx, where any, field string) (float64, error)
-	ArrayField(ctx ctx, where any, field any) ([]*gvar.Var, error)
-	Count(ctx ctx, where any) (count int, err error)
-}
-
 type IDao interface {
 	DB() gdb.DB
 	Table() string
@@ -60,7 +44,7 @@ func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, where any, 
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
 	if len(with) > 0 {
-		db.With(with)
+		db = db.WithAll()
 	}
 	db = db.Where(m)
 	if !g.IsNil(where) {
@@ -83,7 +67,7 @@ func (c Curd[R]) ClearFieldList(ctx ctx, req any, delField []string, where any, 
 		db = db.Where(where)
 	}
 	if len(with) > 0 {
-		db.With(with)
+		db.WithAll()
 	}
 	if !g.IsNil(order) {
 		db = db.Order(order)
@@ -99,7 +83,7 @@ func (c Curd[R]) ClearFieldOne(ctx ctx, req any, delField []string, where any, o
 		db = db.Where(where)
 	}
 	if len(with) > 0 {
-		db.With(with)
+		db.WithAll()
 	}
 	if !g.IsNil(order) {
 		db = db.Order(order)
@@ -127,7 +111,10 @@ func (c Curd[R]) ArrayField(ctx ctx, where any, field any) ([]*gvar.Var, error) 
 }
 
 func (c Curd[R]) FindPri(ctx ctx, primaryKey any, with ...any) (model *R, err error) {
-	db := c.Dao.Ctx(ctx).WherePri(primaryKey).With(with)
+	db := c.Dao.Ctx(ctx).WherePri(primaryKey)
+	if len(with) > 0 {
+		db = db.WithAll()
+	}
 	err = db.Scan(&model)
 	if err != nil {
 		return
@@ -138,7 +125,7 @@ func (c Curd[R]) FindPri(ctx ctx, primaryKey any, with ...any) (model *R, err er
 func (c Curd[R]) First(ctx ctx, where any, order any, with ...any) (model *R, err error) {
 	db := c.Dao.Ctx(ctx).Where(where)
 	if len(with) > 0 {
-		db = db.With(with)
+		db = db.WithAll()
 	}
 	if !g.IsNil(order) {
 		db = db.Order(order)
@@ -157,7 +144,7 @@ func (c Curd[R]) Exists(ctx ctx, where any) (exists bool, err error) {
 func (c Curd[R]) All(ctx ctx, where any, order any, with ...any) (items []*R, err error) {
 	db := c.Dao.Ctx(ctx)
 	if len(with) > 0 {
-		db = db.With(with)
+		db = db.WithAll()
 	}
 	err = db.Where(where).Order(order).Scan(&items)
 	if err != nil {
