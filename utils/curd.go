@@ -40,10 +40,10 @@ func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
 	}
 	return m
 }
-func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, where any, page *Paginate, order any, with ...any) (items []*R, total int, err error) {
+func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, where any, page *Paginate, order any, with bool) (items []*R, total int, err error) {
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
-	if len(with) > 0 {
+	if with {
 		db = db.WithAll()
 	}
 	db = db.Where(m)
@@ -59,15 +59,15 @@ func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, where any, 
 	err = db.ScanAndCount(&items, &total, false)
 	return
 }
-func (c Curd[R]) ClearFieldList(ctx ctx, req any, delField []string, where any, order any, with ...any) (items []*R, err error) {
+func (c Curd[R]) ClearFieldList(ctx ctx, req any, delField []string, where any, order any, with bool) (items []*R, err error) {
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
 	db = db.Where(m)
 	if !g.IsNil(where) {
 		db = db.Where(where)
 	}
-	if len(with) > 0 {
-		db.WithAll()
+	if with {
+		db = db.WithAll()
 	}
 	if !g.IsNil(order) {
 		db = db.Order(order)
@@ -75,15 +75,15 @@ func (c Curd[R]) ClearFieldList(ctx ctx, req any, delField []string, where any, 
 	err = db.Scan(&items)
 	return
 }
-func (c Curd[R]) ClearFieldOne(ctx ctx, req any, delField []string, where any, order any, with ...any) (items *R, err error) {
+func (c Curd[R]) ClearFieldOne(ctx ctx, req any, delField []string, where any, order any, with bool) (items *R, err error) {
 	db := c.Dao.Ctx(ctx)
 	m := c.ClearField(req, delField)
 	db = db.Where(m)
 	if !g.IsNil(where) {
 		db = db.Where(where)
 	}
-	if len(with) > 0 {
-		db.WithAll()
+	if with {
+		db = db.WithAll()
 	}
 	if !g.IsNil(order) {
 		db = db.Order(order)
@@ -94,8 +94,12 @@ func (c Curd[R]) ClearFieldOne(ctx ctx, req any, delField []string, where any, o
 func (c Curd[R]) Value(ctx ctx, where any, field any) (*gvar.Var, error) {
 	return c.Dao.Ctx(ctx).Where(where).Fields(field).Value()
 }
-func (c Curd[R]) Delete(ctx ctx, primaryKey any) error {
+func (c Curd[R]) DeletePri(ctx ctx, primaryKey any) error {
 	_, err := c.Dao.Ctx(ctx).WherePri(primaryKey).Delete()
+	return err
+}
+func (c Curd[R]) DeleteWhere(ctx ctx, where any) error {
+	_, err := c.Dao.Ctx(ctx).Where(where).Delete()
 	return err
 }
 
