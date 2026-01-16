@@ -114,9 +114,9 @@ func (c Curd[R]) ArrayField(ctx ctx, where any, field any) ([]*gvar.Var, error) 
 	return c.Dao.Ctx(ctx).Where(where).Fields(field).Array()
 }
 
-func (c Curd[R]) FindPri(ctx ctx, primaryKey any, with ...any) (model *R, err error) {
+func (c Curd[R]) FindPri(ctx ctx, primaryKey any, with bool) (model *R, err error) {
 	db := c.Dao.Ctx(ctx).WherePri(primaryKey)
-	if len(with) > 0 {
+	if with {
 		db = db.WithAll()
 	}
 	err = db.Scan(&model)
@@ -126,9 +126,9 @@ func (c Curd[R]) FindPri(ctx ctx, primaryKey any, with ...any) (model *R, err er
 	return
 }
 
-func (c Curd[R]) First(ctx ctx, where any, order any, with ...any) (model *R, err error) {
+func (c Curd[R]) First(ctx ctx, where any, order any, with bool) (model *R, err error) {
 	db := c.Dao.Ctx(ctx).Where(where)
-	if len(with) > 0 {
+	if with {
 		db = db.WithAll()
 	}
 	if !g.IsNil(order) {
@@ -145,9 +145,9 @@ func (c Curd[R]) Exists(ctx ctx, where any) (exists bool, err error) {
 	return c.Dao.Ctx(ctx).Where(where).Exist()
 }
 
-func (c Curd[R]) All(ctx ctx, where any, order any, with ...any) (items []*R, err error) {
+func (c Curd[R]) All(ctx ctx, where any, order any, with bool) (items []*R, err error) {
 	db := c.Dao.Ctx(ctx)
-	if len(with) > 0 {
+	if with {
 		db = db.WithAll()
 	}
 	err = db.Where(where).Order(order).Scan(&items)
