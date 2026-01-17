@@ -25,6 +25,19 @@ type Curd[R any] struct {
 	Column R
 }
 
+var pageInfo = []string{
+	"page",
+	"size",
+	"num",
+	"limit",
+	"pagesize",
+	"pageSize",
+	"page_size",
+	"pageNum",
+	"pagenum",
+	"page_num",
+}
+
 func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
 	m := gconv.Map(req)
 	for _, field := range delField {
@@ -34,7 +47,7 @@ func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
 		if g.IsEmpty(v) {
 			delete(m, k)
 		}
-		if gstr.Equal(k, "page") || gstr.Equal(k, "limit") {
+		if gstr.InArray(pageInfo, k) {
 			delete(m, k)
 		}
 	}
