@@ -391,7 +391,7 @@ func (m *Manager) Broadcast(data any) error {
 }
 
 // SendToConn 定向发送消息到指定连接
-func (m *Manager) SendToConn(connID string, data []byte) error {
+func (m *Manager) SendToConn(connID string, data any) error {
 	m.mutex.RLock()
 	conn, exists := m.connections[connID]
 	m.mutex.RUnlock()
