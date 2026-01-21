@@ -21,8 +21,7 @@ type IDao interface {
 }
 
 type Curd[R any] struct {
-	Dao    IDao
-	Column R
+	Dao IDao
 }
 
 var pageInfo = []string{
@@ -38,6 +37,9 @@ var pageInfo = []string{
 	"page_num",
 }
 
+func (c Curd[R]) Builder(ctx context.Context) *gdb.WhereBuilder {
+	return c.Dao.Ctx(ctx).Builder()
+}
 func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
 	m := gconv.Map(req)
 	for _, field := range delField {
