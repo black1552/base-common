@@ -388,6 +388,12 @@ func (m *Manager) SendToConn(connID string, msgType int, data []byte) error {
 	return conn.Send(msgType, data)
 }
 
+func (m *Manager) GetAllConn() map[string]*Connection {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.connections
+}
+
 // CloseAll 关闭所有连接
 func (m *Manager) CloseAll() {
 	m.mutex.RLock()
