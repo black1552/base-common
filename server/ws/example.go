@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gogf/gf/v2/util/gconv"
 )
 
 var manager = NewWs()
@@ -24,18 +26,18 @@ func NewWs() *Manager {
 	m.OnConnect = func(connID string) {
 		log.Printf("业务回调：连接[%s]上线，当前在线数：%d", connID, m.GetOnlineCount())
 		// 欢迎消息
-		_ = m.SendToConn(connID, MessageTypeText, []byte("欢迎连接WebSocket服务！"))
+		_ = m.SendToConn(connID, []byte("欢迎连接WebSocket服务！"))
 	}
 
 	// 收到消息回调
-	m.OnMessage = func(connID string, msgType int, data []byte) {
-		log.Printf("业务回调：收到连接[%s]消息：%s", connID, string(data))
+	m.OnMessage = func(connID string, data any) {
+		log.Printf("业务回调：收到连接[%s]消息：%s", connID, gconv.String(data))
 		// 示例：echo回复
-		reply := []byte("服务端回复：" + string(data))
-		_ = m.SendToConn(connID, msgType, reply)
+		reply := []byte("服务端回复：" + gconv.String(data))
+		_ = m.SendToConn(connID, reply)
 
 		// 示例：广播消息给所有连接
-		_ = m.Broadcast(MessageTypeText, []byte("广播："+connID+"说："+string(data)))
+		_ = m.Broadcast([]byte("广播：" + connID + "说：" + gconv.String(data)))
 	}
 
 	// 连接断开回调
