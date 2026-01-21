@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gorilla/websocket"
@@ -324,7 +325,8 @@ func (c *Connection) Send(data any) error {
 		c.conn.SetWriteDeadline(time.Now().Add(c.manager.config.WriteTimeout))
 
 		// 发送消息
-		err := c.conn.WriteMessage(c.manager.config.MsgType, gconv.Bytes(data))
+		bytes, _ := gjson.Encode(data)
+		err := c.conn.WriteMessage(c.manager.config.MsgType, bytes)
 		if err != nil {
 			return fmt.Errorf("发送消息失败：%w", err)
 		}
