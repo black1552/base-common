@@ -11,6 +11,7 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gorilla/websocket"
 )
@@ -229,9 +230,8 @@ func (c *Connection) ReadPump() {
 			c.conn.SetReadDeadline(time.Now().Add(c.manager.config.ReadTimeout))
 
 			// 心跳响应：如果是客户端的pong消息，触发心跳通道
-			var msg *Msg
-			_ = gconv.Struct(data, &msg)
-			if msgType == c.manager.config.MsgType && msg.Type == c.manager.config.HeartbeatType {
+			str := gconv.String(data)
+			if msgType == c.manager.config.MsgType && gstr.Contains(str, c.manager.config.HeartbeatType) {
 				log.Printf("[心跳] 收到连接[%s]心跳：%s", c.connID, string(data))
 				select {
 				case c.heartbeatChan <- struct{}{}:
