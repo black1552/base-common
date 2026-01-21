@@ -246,9 +246,9 @@ func (c *Connection) ReadPump() {
 }
 
 type Msg struct {
-	Type      string      `json:"type"`
-	Data      interface{} `json:"data"`
-	Timestamp int64       `json:"timestamp"`
+	Type      string `json:"type"`
+	Data      any    `json:"data"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 // WritePump 处理异步写消息（持续运行）
@@ -286,7 +286,7 @@ func (c *Connection) Heartbeat() {
 			return
 		case <-ticker.C:
 			// 发送心跳ping消息
-			err := c.Send(c.manager.config.MsgType, gconv.Bytes(&Msg{Type: c.manager.config.HeartbeatType, Timestamp: gtime.Timestamp()}))
+			err := c.Send(Msg{Type: c.manager.config.HeartbeatType, Timestamp: gtime.Timestamp()})
 			if err != nil {
 				c.Close(fmt.Errorf("发送心跳失败：%w", err))
 				return
@@ -311,7 +311,7 @@ func (c *Connection) Heartbeat() {
 }
 
 // Send 发送消息到客户端（线程安全）
-func (c *Connection) Send(msgType int, data []byte) error {
+func (c *Connection) Send(data any) error {
 	select {
 	case <-c.ctx.Done():
 		return errors.New("连接已关闭，无法发送消息")
@@ -324,7 +324,7 @@ func (c *Connection) Send(msgType int, data []byte) error {
 		c.conn.SetWriteDeadline(time.Now().Add(c.manager.config.WriteTimeout))
 
 		// 发送消息
-		err := c.conn.WriteMessage(msgType, data)
+		err := c.conn.WriteMessage(c.manager.config.MsgType, gconv.Bytes(data))
 		if err != nil {
 			return fmt.Errorf("发送消息失败：%w", err)
 		}
@@ -360,7 +360,7 @@ func (m *Manager) GetOnlineCount() int {
 }
 
 // Broadcast 广播消息到所有在线连接
-func (m *Manager) Broadcast(msgType int, data []byte) error {
+func (m *Manager) Broadcast(data any) error {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -376,7 +376,7 @@ func (m *Manager) Broadcast(msgType int, data []byte) error {
 		wg.Add(1)
 		go func(c *Connection) {
 			defer wg.Done()
-			if err := c.Send(msgType, data); err != nil {
+			if err := c.Send(data); err != nil {
 				errMsg += fmt.Sprintf("连接[%s]广播失败：%v；", c.connID, err)
 			}
 		}(conn)
@@ -391,7 +391,7 @@ func (m *Manager) Broadcast(msgType int, data []byte) error {
 }
 
 // SendToConn 定向发送消息到指定连接
-func (m *Manager) SendToConn(connID string, msgType int, data []byte) error {
+func (m *Manager) SendToConn(connID string, data []byte) error {
 	m.mutex.RLock()
 	conn, exists := m.connections[connID]
 	m.mutex.RUnlock()
@@ -400,7 +400,7 @@ func (m *Manager) SendToConn(connID string, msgType int, data []byte) error {
 		return fmt.Errorf("连接[%s]不存在", connID)
 	}
 
-	return conn.Send(msgType, data)
+	return conn.Send(data)
 }
 
 func (m *Manager) GetAllConn() map[string]*Connection {
