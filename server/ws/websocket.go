@@ -286,8 +286,9 @@ func (c *Connection) Heartbeat() {
 		case <-c.ctx.Done():
 			return
 		case <-ticker.C:
+			bytes, _ := gjson.Encode(Msg{Type: c.manager.config.HeartbeatType, Timestamp: gtime.Timestamp()})
 			// 发送心跳ping消息
-			err := c.Send(Msg{Type: c.manager.config.HeartbeatType, Timestamp: gtime.Timestamp()})
+			err := c.Send(bytes)
 			if err != nil {
 				c.Close(fmt.Errorf("发送心跳失败：%w", err))
 				return
@@ -312,7 +313,7 @@ func (c *Connection) Heartbeat() {
 }
 
 // Send 发送消息到客户端（线程安全）
-func (c *Connection) Send(data any) error {
+func (c *Connection) Send(data []byte) error {
 	select {
 	case <-c.ctx.Done():
 		return errors.New("连接已关闭，无法发送消息")
@@ -325,8 +326,7 @@ func (c *Connection) Send(data any) error {
 		c.conn.SetWriteDeadline(time.Now().Add(c.manager.config.WriteTimeout))
 
 		// 发送消息
-		bytes, _ := gjson.Encode(data)
-		err := c.conn.WriteMessage(c.manager.config.MsgType, bytes)
+		err := c.conn.WriteMessage(c.manager.config.MsgType, data)
 		if err != nil {
 			return fmt.Errorf("发送消息失败：%w", err)
 		}
@@ -362,7 +362,7 @@ func (m *Manager) GetOnlineCount() int {
 }
 
 // Broadcast 广播消息到所有在线连接
-func (m *Manager) Broadcast(data any) error {
+func (m *Manager) Broadcast(data []byte) error {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -393,7 +393,7 @@ func (m *Manager) Broadcast(data any) error {
 }
 
 // SendToConn 定向发送消息到指定连接
-func (m *Manager) SendToConn(connID string, data any) error {
+func (m *Manager) SendToConn(connID string, data []byte) error {
 	m.mutex.RLock()
 	conn, exists := m.connections[connID]
 	m.mutex.RUnlock()
