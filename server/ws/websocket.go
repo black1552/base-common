@@ -85,7 +85,7 @@ type Manager struct {
 	connections map[string]*Connection // 所有在线连接（connID -> Connection）
 	mutex       sync.RWMutex           // 读写锁（保护connections）
 	// 业务回调：收到消息时触发（用户自定义处理逻辑）
-	OnMessage func(connID string, msgType int, data []byte)
+	OnMessage func(connID string, data any)
 	// 业务回调：连接建立时触发
 	OnConnect func(connID string)
 	// 业务回调：连接关闭时触发
