@@ -123,8 +123,8 @@ func NewManager(config *Config) *Manager {
 		connections: make(map[string]*Connection),
 		mutex:       sync.RWMutex{},
 		// 默认回调（用户可覆盖）
-		OnMessage: func(connID string, msgType int, data []byte) {
-			log.Printf("[默认回调] 收到连接[%s]消息：%s", connID, string(data))
+		OnMessage: func(connID string, data any) {
+			log.Printf("[默认回调] 收到连接[%s]消息：%s", connID, gconv.String(data))
 		},
 		OnConnect: func(connID string) {
 			log.Printf("[默认回调] 连接[%s]已建立", connID)
@@ -240,7 +240,7 @@ func (c *Connection) ReadPump() {
 			}
 
 			// 触发业务消息回调
-			c.manager.OnMessage(c.connID, msgType, data)
+			c.manager.OnMessage(c.connID, data)
 		}
 	}
 }
