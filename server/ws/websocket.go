@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gorilla/websocket"
 )
 
@@ -42,8 +44,10 @@ type Config struct {
 	HeartbeatInterval time.Duration // 心跳发送间隔
 	HeartbeatTimeout  time.Duration // 心跳超时时间
 	// 读写超时
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	ReadTimeout   time.Duration
+	WriteTimeout  time.Duration
+	MsgType       int
+	HeartbeatType string
 }
 
 // 默认配置
@@ -57,6 +61,8 @@ func DefaultConfig() *Config {
 		HeartbeatTimeout:  DefaultHeartbeatTimeout,
 		ReadTimeout:       DefaultReadTimeout,
 		WriteTimeout:      DefaultWriteTimeout,
+		MsgType:           MessageTypeText,
+		HeartbeatType:     "heartbeat",
 	}
 }
 
@@ -222,7 +228,10 @@ func (c *Connection) ReadPump() {
 			c.conn.SetReadDeadline(time.Now().Add(c.manager.config.ReadTimeout))
 
 			// 心跳响应：如果是客户端的pong消息，触发心跳通道
-			if msgType == MessageTypeText && string(data) == "pong" {
+			var msg *Msg
+			_ = gconv.Struct(data, &msg)
+			if msgType == c.manager.config.MsgType && msg.Type == c.manager.config.HeartbeatType {
+				log.Printf("[心跳] 收到连接[%s]心跳：%s", c.connID, string(data))
 				select {
 				case c.heartbeatChan <- struct{}{}:
 				default:
@@ -234,6 +243,12 @@ func (c *Connection) ReadPump() {
 			c.manager.OnMessage(c.connID, msgType, data)
 		}
 	}
+}
+
+type Msg struct {
+	Type      string      `json:"type"`
+	Data      interface{} `json:"data"`
+	Timestamp int64       `json:"timestamp"`
 }
 
 // WritePump 处理异步写消息（持续运行）
@@ -271,7 +286,7 @@ func (c *Connection) Heartbeat() {
 			return
 		case <-ticker.C:
 			// 发送心跳ping消息
-			err := c.Send(MessageTypeText, []byte("ping"))
+			err := c.Send(c.manager.config.MsgType, gconv.Bytes(&Msg{Type: c.manager.config.HeartbeatType, Timestamp: gtime.Timestamp()}))
 			if err != nil {
 				c.Close(fmt.Errorf("发送心跳失败：%w", err))
 				return
