@@ -30,7 +30,7 @@ func NewWs() *Manager {
 	}
 
 	// 收到消息回调
-	m.OnMessage = func(connID string, data any) {
+	m.OnMessage = func(connID string, msgType int, data any) {
 		log.Printf("业务回调：收到连接[%s]消息：%s", connID, gconv.String(data))
 		// 示例：echo回复
 		reply := []byte("服务端回复：" + gconv.String(data))
