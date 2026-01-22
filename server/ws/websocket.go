@@ -226,9 +226,12 @@ func (m *Manager) Upgrade(w http.ResponseWriter, r *http.Request, connID string)
 	}
 	wsConn.heartbeatTime = gtimer.AddSingleton(gctx.New(), m.config.HeartbeatTimeout, func(ctx context.Context) {
 		log.Printf("[心跳检测] 连接[%s]已关闭：心跳超时", wsConn.connID)
+		wsConn.heartbeatTime.Close()
+		wsConn.heartbeatTime.Stop()
+		wsConn.heartbeatTime = nil
+		wsConn.ctx.Done()
 		wsConn.Close(fmt.Errorf("心跳超时"))
 	})
-	wsConn.heartbeatTime.Start()
 	// 添加到管理器
 	m.mutex.Lock()
 	m.connections[connID] = wsConn
@@ -303,15 +306,15 @@ func (c *Connection) ReadPump() {
 				// 心跳消息：重置重试次数 + 发送心跳信号 + 重置读超时
 				js, err := gjson.Encode(&Msg[any]{c.manager.config.HeartbeatValue, nil, gtime.Timestamp()})
 				if err != nil {
-					log.Printf("[心跳] json编码失败")
+					log.Printf("[心跳] 客户端[%s]json编码失败", c.connID)
 					continue
 				}
 				err = c.Send(js)
 				if err != nil {
-					log.Printf("[心跳] 发送心跳消息失败")
+					log.Printf("[心跳] 客户端[%s]发送心跳消息失败", c.connID)
 					continue
 				}
-				log.Printf("[心跳] 重置心跳信号")
+				log.Printf("[心跳] 重置[%s]心跳信号", c.connID)
 				c.heartbeatTime.Reset()
 				continue // 跳过业务回调
 			}
