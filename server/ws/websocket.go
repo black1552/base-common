@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/os/gtimer"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gorilla/websocket"
@@ -31,6 +33,8 @@ const (
 	// 消息类型
 	MessageTypeText   = websocket.TextMessage
 	MessageTypeBinary = websocket.BinaryMessage
+	// 心跳最大重试次数
+	HeartbeatMaxRetry = 3
 )
 
 // Config WebSocket服务端配置
@@ -46,10 +50,11 @@ type Config struct {
 	HeartbeatInterval time.Duration // 心跳发送间隔
 	HeartbeatTimeout  time.Duration // 心跳超时时间
 	// 读写超时
-	ReadTimeout   time.Duration
-	WriteTimeout  time.Duration
-	MsgType       int
-	HeartbeatType string
+	ReadTimeout    time.Duration
+	WriteTimeout   time.Duration
+	MsgType        int    // 发送消息的默认类型
+	HeartbeatValue string // 心跳消息的标识字段值（如"heartbeat"、"pong"）
+	HeartbeatKey   string // 心跳消息的标识字段名（如"type"）
 }
 
 // 默认配置
@@ -64,20 +69,23 @@ func DefaultConfig() *Config {
 		ReadTimeout:       DefaultReadTimeout,
 		WriteTimeout:      DefaultWriteTimeout,
 		MsgType:           MessageTypeText,
-		HeartbeatType:     "heartbeat",
+		HeartbeatValue:    "heartbeat",
+		HeartbeatKey:      "type", // 心跳消息的标识字段名，默认"type"
 	}
 }
 
 // Connection WebSocket连接结构体
 type Connection struct {
-	conn          *websocket.Conn    // 底层连接
-	connID        string             // 唯一连接ID
-	manager       *Manager           // 所属管理器
-	createTime    time.Time          // 连接创建时间
-	heartbeatChan chan struct{}      // 心跳通道（用于检测客户端响应）
-	ctx           context.Context    // 上下文
-	cancel        context.CancelFunc // 上下文取消函数
-	writeMutex    sync.Mutex         // 写消息互斥锁（防止并发写）
+	conn           *websocket.Conn // 底层连接
+	connID         string          // 唯一连接ID
+	manager        *Manager        // 所属管理器
+	createTime     time.Time       // 连接创建时间
+	heartbeatChan  time.Time       // 心跳通道（用于检测客户端响应）
+	heartbeatTime  *gtimer.Entry
+	ctx            context.Context    // 上下文
+	cancel         context.CancelFunc // 上下文取消函数
+	writeMutex     sync.Mutex         // 写消息互斥锁（防止并发写）
+	heartbeatRetry int                // 心跳发送重试次数
 }
 
 // Manager WebSocket连接管理器
@@ -87,19 +95,62 @@ type Manager struct {
 	connections map[string]*Connection // 所有在线连接（connID -> Connection）
 	mutex       sync.RWMutex           // 读写锁（保护connections）
 	// 业务回调：收到消息时触发（用户自定义处理逻辑）
-	OnMessage func(connID string, data any)
+	OnMessage func(connID string, msgType int, data any)
 	// 业务回调：连接建立时触发
 	OnConnect func(connID string)
 	// 业务回调：连接关闭时触发
 	OnDisconnect func(connID string, err error)
 }
 
-// NewManager 创建连接管理器
-func NewManager(config *Config) *Manager {
-	if config == nil {
-		config = DefaultConfig()
+// Merge 合并配置，用传入的配置覆盖非零值部分
+func (c *Config) Merge(other *Config) *Config {
+	result := *c // 复制当前配置
+
+	if other == nil {
+		return &result
 	}
 
+	if other.ReadBufferSize > 0 {
+		result.ReadBufferSize = other.ReadBufferSize
+	}
+	if other.WriteBufferSize > 0 {
+		result.WriteBufferSize = other.WriteBufferSize
+	}
+	if other.HeartbeatInterval > 0 {
+		result.HeartbeatInterval = other.HeartbeatInterval
+	}
+	if other.HeartbeatTimeout > 0 {
+		result.HeartbeatTimeout = other.HeartbeatTimeout
+	}
+	if other.ReadTimeout > 0 {
+		result.ReadTimeout = other.ReadTimeout
+	}
+	if other.WriteTimeout > 0 {
+		result.WriteTimeout = other.WriteTimeout
+	}
+	if other.AllowAllOrigins {
+		result.AllowAllOrigins = other.AllowAllOrigins
+	}
+	if other.HeartbeatValue != "" {
+		result.HeartbeatValue = other.HeartbeatValue
+	}
+	if other.HeartbeatKey != "" {
+		result.HeartbeatKey = other.HeartbeatKey
+	}
+	if len(other.AllowedOrigins) > 0 {
+		result.AllowedOrigins = other.AllowedOrigins
+	}
+	if other.MsgType != 0 {
+		result.MsgType = other.MsgType
+	}
+
+	return &result
+}
+
+// NewManager 创建连接管理器
+func NewManager(config *Config) *Manager {
+	defaultConfig := DefaultConfig()
+	finalConfig := defaultConfig.Merge(config)
 	// 初始化升级器
 	upgrader := &websocket.Upgrader{
 		ReadBufferSize:  config.ReadBufferSize,
@@ -110,7 +161,7 @@ func NewManager(config *Config) *Manager {
 				return true
 			}
 			origin := r.Header.Get("Origin")
-			for _, allowed := range config.AllowedOrigins {
+			for _, allowed := range finalConfig.AllowedOrigins {
 				if origin == allowed {
 					return true
 				}
@@ -120,12 +171,12 @@ func NewManager(config *Config) *Manager {
 	}
 
 	return &Manager{
-		config:      config,
+		config:      finalConfig,
 		upgrader:    upgrader,
 		connections: make(map[string]*Connection),
 		mutex:       sync.RWMutex{},
 		// 默认回调（用户可覆盖）
-		OnMessage: func(connID string, data any) {
+		OnMessage: func(connID string, msgType int, data any) {
 			log.Printf("[默认回调] 收到连接[%s]消息：%s", connID, gconv.String(data))
 		},
 		OnConnect: func(connID string) {
@@ -163,16 +214,21 @@ func (m *Manager) Upgrade(w http.ResponseWriter, r *http.Request, connID string)
 
 	// 创建连接实例
 	wsConn := &Connection{
-		conn:          conn,
-		connID:        connID,
-		manager:       m,
-		createTime:    time.Now(),
-		heartbeatChan: make(chan struct{}, 1),
-		ctx:           ctx,
-		cancel:        cancel,
-		writeMutex:    sync.Mutex{},
+		conn:           conn,
+		connID:         connID,
+		manager:        m,
+		createTime:     time.Now(),
+		heartbeatChan:  time.Now(), // 缓冲1，防止阻塞
+		ctx:            ctx,
+		cancel:         cancel,
+		writeMutex:     sync.Mutex{},
+		heartbeatRetry: 0,
 	}
-
+	wsConn.heartbeatTime = gtimer.AddSingleton(gctx.New(), m.config.HeartbeatTimeout, func(ctx context.Context) {
+		log.Printf("[心跳检测] 连接[%s]已关闭：心跳超时", wsConn.connID)
+		wsConn.Close(fmt.Errorf("心跳超时"))
+	})
+	wsConn.heartbeatTime.Start()
 	// 添加到管理器
 	m.mutex.Lock()
 	m.connections[connID] = wsConn
@@ -202,58 +258,78 @@ func (c *Connection) ReadPump() {
 		c.Close(fmt.Errorf("读消息协程退出"))
 	}()
 
-	// 设置读超时
-	c.conn.SetReadDeadline(time.Now().Add(c.manager.config.ReadTimeout))
-
-	// 设置消息分片大小（默认不限制）
-	c.conn.SetReadLimit(0)
-
+	// 循环读取消息
 	for {
 		select {
 		case <-c.ctx.Done():
 			return // 上下文已取消，退出
 		default:
+			// 设置读超时（每次读取前重置，防止长时间无消息超时）
+			c.conn.SetReadDeadline(time.Now().Add(c.manager.config.ReadTimeout))
 			// 读取客户端消息
 			msgType, data, err := c.conn.ReadMessage()
 			if err != nil {
 				// 区分正常关闭和异常错误
 				var closeErr *websocket.CloseError
 				if errors.As(err, &closeErr) {
-					c.Close(fmt.Errorf("客户端主动关闭：%s", closeErr.Text))
+					c.Close(fmt.Errorf("客户端主动关闭：%s（代码：%d）", closeErr.Text, closeErr.Code))
 				} else {
 					c.Close(fmt.Errorf("读取消息失败：%w", err))
 				}
 				return
 			}
 
-			// 更新读超时（收到消息则重置超时）
-			c.conn.SetReadDeadline(time.Now().Add(c.manager.config.ReadTimeout))
-
-			// 心跳响应：如果是客户端的pong消息，触发心跳通道
-			str := gconv.String(data)
-			if msgType == c.manager.config.MsgType && gstr.Contains(str, c.manager.config.HeartbeatType) {
-				log.Printf("[心跳] 收到连接[%s]心跳：%s", c.connID, string(data))
-				select {
-				case c.heartbeatChan <- struct{}{}:
-				default:
+			// 尝试解析JSON格式的心跳消息（精准判断，替代包含判断）
+			isHeartbeat := false
+			// 先尝试解析为JSON对象
+			var msgMap map[string]interface{}
+			if err := gjson.DecodeTo(data, &msgMap); err == nil {
+				// 获取心跳标识字段的值
+				heartbeatValue := gconv.String(msgMap[c.manager.config.HeartbeatKey])
+				log.Printf("[心跳] 是否心跳消息：%v, 消息值：%v", heartbeatValue == c.manager.config.HeartbeatValue, heartbeatValue)
+				if heartbeatValue == c.manager.config.HeartbeatValue {
+					isHeartbeat = true
 				}
-				continue
+			} else {
+				// 非JSON格式，降级为包含判断（兼容纯文本心跳）
+				str := gconv.String(data)
+				if gstr.Contains(str, c.manager.config.HeartbeatValue) {
+					isHeartbeat = true
+				}
+			}
+			log.Printf("[心跳] 是否心跳消息：%v", isHeartbeat)
+			if isHeartbeat {
+				log.Printf("[心跳] 收到连接[%s]心跳消息：%s", c.connID, string(data))
+				// 心跳消息：重置重试次数 + 发送心跳信号 + 重置读超时
+				js, err := gjson.Encode(&Msg[any]{c.manager.config.HeartbeatValue, nil, gtime.Timestamp()})
+				if err != nil {
+					log.Printf("[心跳] json编码失败")
+					continue
+				}
+				err = c.Send(js)
+				if err != nil {
+					log.Printf("[心跳] 发送心跳消息失败")
+					continue
+				}
+				log.Printf("[心跳] 重置心跳信号")
+				c.heartbeatTime.Reset()
+				continue // 跳过业务回调
 			}
 
-			// 触发业务消息回调
-			c.manager.OnMessage(c.connID, data)
+			// 非心跳消息：触发业务回调
+			c.manager.OnMessage(c.connID, msgType, data)
 		}
 	}
 }
 
-type Msg struct {
+type Msg[T any] struct {
 	Type      string `json:"type"`
-	Data      any    `json:"data"`
+	Data      T      `json:"data"`
 	Timestamp int64  `json:"timestamp"`
 }
 
 // WritePump 处理异步写消息（持续运行）
-// 注：实际项目可扩展为消息队列，此处简化为直接写
+// 扩展为监听写队列，防止消息丢失
 func (c *Connection) WritePump() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -261,7 +337,7 @@ func (c *Connection) WritePump() {
 		}
 	}()
 
-	// 暂时无需循环，实际可扩展为监听写队列
+	// 暂时保持简化，实际可扩展为带缓冲的写队列
 	<-c.ctx.Done()
 }
 
@@ -272,44 +348,7 @@ func (c *Connection) Heartbeat() {
 			log.Printf("连接[%s]心跳协程panic：%v", c.connID, err)
 		}
 	}()
-
-	// 心跳定时器
-	ticker := time.NewTicker(c.manager.config.HeartbeatInterval)
-	defer ticker.Stop()
-
-	// 超时定时器
-	timeoutTimer := time.NewTimer(c.manager.config.HeartbeatTimeout)
-	defer timeoutTimer.Stop()
-
-	for {
-		select {
-		case <-c.ctx.Done():
-			return
-		case <-ticker.C:
-			bytes, _ := gjson.Encode(Msg{Type: c.manager.config.HeartbeatType, Timestamp: gtime.Timestamp()})
-			// 发送心跳ping消息
-			err := c.Send(bytes)
-			if err != nil {
-				c.Close(fmt.Errorf("发送心跳失败：%w", err))
-				return
-			}
-			// 重置超时定时器
-			if !timeoutTimer.Stop() {
-				<-timeoutTimer.C
-			}
-			timeoutTimer.Reset(c.manager.config.HeartbeatTimeout)
-		case <-timeoutTimer.C:
-			// 心跳超时，关闭连接
-			c.Close(errors.New("心跳超时，客户端无响应"))
-			return
-		case <-c.heartbeatChan:
-			// 收到客户端pong响应，重置超时定时器
-			if !timeoutTimer.Stop() {
-				<-timeoutTimer.C
-			}
-			timeoutTimer.Reset(c.manager.config.HeartbeatTimeout)
-		}
-	}
+	c.heartbeatTime.Start()
 }
 
 // Send 发送消息到客户端（线程安全）
@@ -325,7 +364,7 @@ func (c *Connection) Send(data []byte) error {
 		// 设置写超时
 		c.conn.SetWriteDeadline(time.Now().Add(c.manager.config.WriteTimeout))
 
-		// 发送消息
+		// 发送消息（使用连接的默认类型，支持动态调整）
 		err := c.conn.WriteMessage(c.manager.config.MsgType, data)
 		if err != nil {
 			return fmt.Errorf("发送消息失败：%w", err)
@@ -336,10 +375,17 @@ func (c *Connection) Send(data []byte) error {
 
 // Close 关闭连接（优雅清理）
 func (c *Connection) Close(err error) {
+	// 防止重复关闭
+	select {
+	case <-c.ctx.Done():
+		return
+	default:
+	}
+
 	// 取消上下文（终止所有协程）
 	c.cancel()
 
-	// 关闭底层连接
+	// 关闭底层连接（友好关闭）
 	_ = c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 	_ = c.conn.Close()
 
@@ -351,7 +397,7 @@ func (c *Connection) Close(err error) {
 	// 触发断开回调
 	c.manager.OnDisconnect(c.connID, err)
 
-	log.Printf("连接[%s]已关闭，当前在线数：%d", c.connID, c.manager.GetOnlineCount())
+	log.Printf("连接[%s]已关闭，当前在线数：%d，原因：%v", c.connID, c.manager.GetOnlineCount(), err)
 }
 
 // GetOnlineCount 获取在线连接数
@@ -408,7 +454,18 @@ func (m *Manager) SendToConn(connID string, data []byte) error {
 func (m *Manager) GetAllConn() map[string]*Connection {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	return m.connections
+	// 返回副本，防止外部修改
+	connCopy := make(map[string]*Connection, len(m.connections))
+	for k, v := range m.connections {
+		connCopy[k] = v
+	}
+	return connCopy
+}
+
+func (m *Manager) GetConn(connID string) *Connection {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	return m.connections[connID]
 }
 
 // CloseAll 关闭所有连接
