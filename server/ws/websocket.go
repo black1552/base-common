@@ -289,7 +289,6 @@ func (c *Connection) ReadPump() {
 			if err := gjson.DecodeTo(data, &msgMap); err == nil {
 				// 获取心跳标识字段的值
 				heartbeatValue := gconv.String(msgMap[c.manager.config.HeartbeatKey])
-				log.Printf("[心跳] 是否心跳消息：%v, 消息值：%v", heartbeatValue == c.manager.config.HeartbeatValue, heartbeatValue)
 				if heartbeatValue == c.manager.config.HeartbeatValue {
 					isHeartbeat = true
 				}
@@ -300,7 +299,6 @@ func (c *Connection) ReadPump() {
 					isHeartbeat = true
 				}
 			}
-			log.Printf("[心跳] 是否心跳消息：%v", isHeartbeat)
 			if isHeartbeat {
 				log.Printf("[心跳] 收到连接[%s]心跳消息：%s", c.connID, string(data))
 				// 心跳消息：重置重试次数 + 发送心跳信号 + 重置读超时
@@ -314,7 +312,6 @@ func (c *Connection) ReadPump() {
 					log.Printf("[心跳] 客户端[%s]发送心跳消息失败", c.connID)
 					continue
 				}
-				log.Printf("[心跳] 重置[%s]心跳信号", c.connID)
 				c.heartbeatTime.Reset()
 				continue // 跳过业务回调
 			}
