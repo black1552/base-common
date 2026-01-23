@@ -9,7 +9,9 @@ require (
 	github.com/gogf/gf/contrib/registry/etcd/v2 v2.9.3
 	github.com/gogf/gf/contrib/rpc/grpcx/v2 v2.9.3
 	github.com/gogf/gf/v2 v2.9.3
+	github.com/gorilla/websocket v1.5.3
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/stretchr/testify v1.10.0
 	github.com/xuri/excelize/v2 v2.9.1
 	google.golang.org/grpc v1.76.0
 	gorm.io/driver/mysql v1.6.0
@@ -22,6 +24,7 @@ require (
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -32,7 +35,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grokify/html-strip-tags-go v0.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -43,6 +45,7 @@ require (
 	github.com/olekukonko/errors v1.1.0 // indirect
 	github.com/olekukonko/ll v0.0.9 // indirect
 	github.com/olekukonko/tablewriter v1.0.9 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect

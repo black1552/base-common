@@ -69,34 +69,42 @@ func (c Curd[R]) BuildMap(op string, value any) map[string]any {
 	}
 }
 func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gstr.CaseType) map[string]any {
+	if req == nil {
+		return map[string]any{}
+	}
+	kType := gstr.Snake
+	if len(caseSnake) > 0 {
+		kType = caseSnake[0]
+	}
 	changMap := gmap.NewStrAnyMap()
 	if changeFiles != nil {
 		changMap.Sets(changeFiles)
 	}
-	reqMap := gconv.Map(req)
-	for k, v := range reqMap {
-		if len(caseSnake) > 0 {
-			k = gstr.CaseConvert(k, caseSnake[0])
-		} else {
-			k = gstr.CaseSnake(k)
-		}
-		k = gstr.CaseSnake(k)
+	reqM := gconv.Map(req)
+	reqMap := gmap.NewStrAnyMapFrom(reqM)
+	reqMap.Iterator(func(k string, v any) bool {
 		if g.IsEmpty(v) {
-			delete(reqMap, k)
+			reqMap.Remove(k)
+			return true
 		}
 		if gstr.InArray(pageInfo, k) {
-			delete(reqMap, k)
+			reqMap.Remove(k)
+			return true
 		}
-		reqMap[k] = v
+		reqMap.Remove(k)
+		newK := gstr.CaseConvert(k, kType)
+		reqMap.Set(newK, v)
 		if changMap != nil && changMap.Contains(k) {
 			vMap := gmap.NewStrAnyMapFrom(gconv.Map(changMap.Get(k)))
 			if vMap.Contains("op") {
-				reqMap[fmt.Sprintf("%s %s", gstr.CaseSnake(k), vMap.Get("op"))] = vMap.Get("value")
-				delete(reqMap, k)
+				reqMap.Remove(k)
+				reqMap.Set(fmt.Sprintf("%s %s", gstr.CaseConvert(k, kType), gstr.CaseConvert(gconv.String(vMap.Get("op")), kType)), vMap.Get("value"))
+				return true
 			}
 		}
-	}
-	return reqMap
+		return true
+	})
+	return reqMap.Map()
 }
 func (c Curd[R]) Builder(ctx context.Context) *gdb.WhereBuilder {
 	return c.Dao.Ctx(ctx).Builder()
