@@ -68,13 +68,18 @@ func (c Curd[R]) BuildMap(op string, value any) map[string]any {
 		"value": value,
 	}
 }
-func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any) map[string]any {
+func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gstr.CaseType) map[string]any {
 	changMap := gmap.NewStrAnyMap()
 	if changeFiles != nil {
 		changMap.Sets(changeFiles)
 	}
 	reqMap := gconv.Map(req)
 	for k, v := range reqMap {
+		if len(caseSnake) > 0 {
+			k = gstr.CaseConvert(k, caseSnake[0])
+		} else {
+			k = gstr.CaseSnake(k)
+		}
 		k = gstr.CaseSnake(k)
 		if g.IsEmpty(v) {
 			delete(reqMap, k)
