@@ -2,7 +2,9 @@ package utils
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
@@ -37,6 +39,58 @@ var pageInfo = []string{
 	"page_num",
 }
 
+func ChangeWhere(req any, changeFiles map[string]any) map[string]any {
+	changMap := gmap.NewStrAnyMap()
+	if changeFiles != nil {
+		changMap.Sets(changeFiles)
+	}
+	reqMap := gconv.Map(req)
+	for k, v := range reqMap {
+		if g.IsEmpty(v) {
+			delete(reqMap, k)
+		}
+		if gstr.InArray(pageInfo, k) {
+			delete(reqMap, k)
+		}
+		if changMap != nil && changMap.Contains(k) {
+			vMap := gmap.NewStrAnyMapFrom(gconv.Map(changMap.Get(k)))
+			if vMap.Contains("op") {
+				reqMap[fmt.Sprintf("%s %s", k, vMap.Get("op"))] = vMap.Get("value")
+				delete(reqMap, k)
+			}
+		}
+	}
+	return reqMap
+}
+func (c Curd[R]) BuildMap(op string, value any) map[string]any {
+	return map[string]any{
+		"op":    op,
+		"value": value,
+	}
+}
+func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any) map[string]any {
+	changMap := gmap.NewStrAnyMap()
+	if changeFiles != nil {
+		changMap.Sets(changeFiles)
+	}
+	reqMap := gconv.Map(req)
+	for k, v := range reqMap {
+		if g.IsEmpty(v) {
+			delete(reqMap, k)
+		}
+		if gstr.InArray(pageInfo, k) {
+			delete(reqMap, k)
+		}
+		if changMap != nil && changMap.Contains(k) {
+			vMap := gmap.NewStrAnyMapFrom(gconv.Map(changMap.Get(k)))
+			if vMap.Contains("op") {
+				reqMap[fmt.Sprintf("%s %s", k, vMap.Get("op"))] = vMap.Get("value")
+				delete(reqMap, k)
+			}
+		}
+	}
+	return reqMap
+}
 func (c Curd[R]) Builder(ctx context.Context) *gdb.WhereBuilder {
 	return c.Dao.Ctx(ctx).Builder()
 }
