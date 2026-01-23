@@ -75,16 +75,18 @@ func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any) map[string]any 
 	}
 	reqMap := gconv.Map(req)
 	for k, v := range reqMap {
+		k = gstr.CaseSnake(k)
 		if g.IsEmpty(v) {
 			delete(reqMap, k)
 		}
 		if gstr.InArray(pageInfo, k) {
 			delete(reqMap, k)
 		}
+		reqMap[k] = v
 		if changMap != nil && changMap.Contains(k) {
 			vMap := gmap.NewStrAnyMapFrom(gconv.Map(changMap.Get(k)))
 			if vMap.Contains("op") {
-				reqMap[fmt.Sprintf("%s %s", k, vMap.Get("op"))] = vMap.Get("value")
+				reqMap[fmt.Sprintf("%s %s", gstr.CaseSnake(k), vMap.Get("op"))] = vMap.Get("value")
 				delete(reqMap, k)
 			}
 		}
