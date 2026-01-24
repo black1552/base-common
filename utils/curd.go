@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/container/gvar"
@@ -10,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/gutil"
 )
 
 type ctx = context.Context
@@ -39,72 +42,208 @@ var pageInfo = []string{
 	"page_num",
 }
 
-func ChangeWhere(req any, changeFiles map[string]any) map[string]any {
-	changMap := gmap.NewStrAnyMap()
-	if changeFiles != nil {
-		changMap.Sets(changeFiles)
+// 预编译正则：匹配key中的操作符（支持 >、>=、<、<=、=、!=、LIKE、IN、NOT IN 等）
+var opRegex = regexp.MustCompile(`\s*(>=|<=|>|<|!=|=|LIKE|like|IN|in|NOT IN|not in)\s*`)
+
+// BuildWhere 构建适配goframe orm的map格式查询条件
+// req: 入参结构体/Map，存放查询条件（key可直接带操作符，如"age>="、"name like"）
+// changeFiles: 字段映射+操作符配置，格式如 {"name": {"op": "like", "field": "user_name", "value": "张%"}}
+// caseSnake: 字段命名格式转换类型（默认下划线命名）
+// 返回值: 可直接给goframe orm使用的where条件map
+func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gstr.CaseType) map[string]any {
+	// 1. 空值快速返回
+	if req == nil {
+		req = map[string]any{} // 确保后续处理不报错
 	}
-	reqMap := gconv.Map(req)
-	for k, v := range reqMap {
-		if g.IsEmpty(v) {
-			delete(reqMap, k)
+
+	// 2. 初始化命名格式（默认下划线）
+	kType := gstr.Snake
+	if len(caseSnake) > 0 && caseSnake[0] != "" {
+		kType = caseSnake[0]
+	}
+
+	// 3. 处理字段映射/操作符配置
+	changeMap := gmap.NewStrAnyMap()
+	if changeFiles != nil {
+		changeMap.Sets(changeFiles)
+	}
+
+	// 4. 安全转换req为Map（支持结构体/Map/指针等任意类型）
+	reqM := gconv.Map(req)
+	if reqM == nil {
+		reqM = map[string]any{}
+	}
+	reqMap := gmap.NewStrAnyMapFrom(reqM)
+
+	// 5. 第一步：处理req中的原始key（原有逻辑不变）
+	keys := reqMap.Keys()
+	for _, originalKey := range keys {
+		val := reqMap.Get(originalKey)
+		// 跳过分页字段
+		if gstr.InArray(pageInfo, originalKey) {
+			reqMap.Remove(originalKey)
+			continue
 		}
-		if gstr.InArray(pageInfo, k) {
-			delete(reqMap, k)
+
+		// 6. 精准空值判断：仅跳过真正的空值（保留0、false、0.0等合法零值）
+		if gutil.IsEmpty(val) {
+			reqMap.Remove(originalKey)
+			continue
 		}
-		if changMap != nil && changMap.Contains(k) {
-			vMap := gmap.NewStrAnyMapFrom(gconv.Map(changMap.Get(k)))
-			if vMap.Contains("op") {
-				reqMap[fmt.Sprintf("%s %s", k, vMap.Get("op"))] = vMap.Get("value")
-				delete(reqMap, k)
+
+		// 7. 解析req key中的「纯字段名」和「操作符」
+		fieldName, keyOp := parseKeyWithOp(originalKey)
+		// 字段名格式转换（如驼峰转下划线）
+		convertedField := gstr.CaseConvert(fieldName, kType)
+
+		// 8. 优先使用changeFiles配置
+		finalOp := keyOp
+		finalField := convertedField
+		if changeMap.Size() > 0 {
+			// 分步判断：优先取转换后的字段名 → 原字段名 → 原始key
+			var changeVal any
+			if changeMap.Contains(convertedField) {
+				changeVal = changeMap.Get(convertedField)
+			} else if changeMap.Contains(fieldName) {
+				changeVal = changeMap.Get(fieldName)
+			} else if changeMap.Contains(originalKey) {
+				changeVal = changeMap.Get(originalKey)
+			}
+
+			// 仅当获取到有效值时处理
+			if changeVal != nil {
+				opMap := gconv.Map(changeVal)
+				if len(opMap) > 0 {
+					// 提取changeFiles中的操作符和目标字段（value不覆盖req的val）
+					confOp := gstr.ToLower(gconv.String(opMap["op"]))
+					confField := gconv.String(opMap["field"])
+					if confField != "" {
+						finalField = confField
+					}
+					if confOp != "" {
+						// 转换为ORM标准操作符（如gt → >）
+						finalOp = getORMOp(confOp)
+					}
+				}
+			}
+		}
+
+		// 9. 生成ORM合法的key（字段名 + 操作符）
+		var ormKey string
+		if finalOp != "" {
+			ormKey = fmt.Sprintf("%s %s", finalField, finalOp)
+		} else {
+			ormKey = finalField
+		}
+
+		// 10. 移除原key，设置最终的ORM查询键值对
+		reqMap.Remove(originalKey)
+		reqMap.Set(ormKey, val)
+	}
+
+	// 11. 第二步：新增逻辑 - 补充changeFiles中未在req中出现的key
+	if changeMap.Size() > 0 {
+		// 遍历changeFiles的所有key
+		for _, changeKey := range changeMap.Keys() {
+			changeVal := changeMap.Get(changeKey)
+			opMap := gconv.Map(changeVal)
+			if len(opMap) == 0 {
+				continue
+			}
+
+			// 提取配置中的核心字段：value（必须有）、field、op
+			confValue := opMap["value"]
+			// 空值不添加（保留0/false等合法零值）
+			if gutil.IsEmpty(confValue) {
+				continue
+			}
+
+			// 解析配置中的字段名和操作符
+			confField := gconv.String(opMap["field"])
+			if confField == "" {
+				// 未指定field则使用changeKey（并做格式转换）
+				confField = gstr.CaseConvert(changeKey, kType)
+			}
+			confOp := getORMOp(gstr.ToLower(gconv.String(opMap["op"])))
+
+			// 生成要添加的ORM key
+			var addORMKey string
+			if confOp != "" {
+				addORMKey = fmt.Sprintf("%s %s", confField, confOp)
+			} else {
+				addORMKey = confField // 默认等值匹配
+			}
+
+			// 检查该ORM key是否已存在，不存在则添加
+			if !reqMap.Contains(addORMKey) {
+				reqMap.Set(addORMKey, confValue)
 			}
 		}
 	}
-	return reqMap
+
+	// 12. 返回最终的orm查询map
+	return reqMap.Map()
+}
+
+// parseKeyWithOp 解析key，拆分出「纯字段名」和「操作符」
+// 支持的key格式：
+// - "age>=" → 字段名"age"，操作符">="
+// - "name like" → 字段名"name"，操作符"LIKE"
+// - "id in" → 字段名"id"，操作符"IN"
+// - "status" → 字段名"status"，操作符""
+func parseKeyWithOp(key string) (fieldName string, op string) {
+	// 去除首尾空格
+	key = strings.TrimSpace(key)
+	// 匹配操作符
+	matches := opRegex.FindStringSubmatch(key)
+	if len(matches) == 0 {
+		// 无操作符，直接返回原key（去空格）
+		return key, ""
+	}
+
+	// 提取操作符并标准化（如like → LIKE，in → IN）
+	op = strings.ToUpper(matches[1])
+	// 提取纯字段名（去除操作符部分，再去空格）
+	fieldName = strings.TrimSpace(opRegex.ReplaceAllString(key, ""))
+	return
+}
+
+// getORMOp 转换语义化操作符为goframe orm支持的标准操作符
+func getORMOp(op string) string {
+	opMap := map[string]string{
+		"=":           "=",
+		"!=":          "!=",
+		">":           ">",
+		"<":           "<",
+		">=":          ">=",
+		"<=":          "<=",
+		"<>":          "<>",
+		"between":     "BETWEEN",
+		"is null":     "IS NULL",
+		"is not null": "IS NOT NULL",
+		"is":          "IS",
+		"is not":      "IS NOT",
+		"eq":          "=",
+		"ne":          "!=",
+		"gt":          ">",
+		"gte":         ">=",
+		"lt":          "<",
+		"lte":         "<=",
+		"like":        "LIKE",
+		"in":          "IN",
+		"not in":      "NOT IN",
+		"":            "", // 空操作符
+	}
+	if val, ok := opMap[op]; ok {
+		return val
+	}
+	return "=" // 默认等值匹配
 }
 func (c Curd[R]) BuildMap(op string, value any) map[string]any {
 	return map[string]any{
 		"op":    op,
 		"value": value,
 	}
-}
-func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gstr.CaseType) map[string]any {
-	if req == nil {
-		return map[string]any{}
-	}
-	kType := gstr.Snake
-	if len(caseSnake) > 0 {
-		kType = caseSnake[0]
-	}
-	changMap := gmap.NewStrAnyMap()
-	if changeFiles != nil {
-		changMap.Sets(changeFiles)
-	}
-	reqM := gconv.Map(req)
-	reqMap := gmap.NewStrAnyMapFrom(reqM)
-	reqMap.Iterator(func(k string, v any) bool {
-		if g.IsEmpty(v) {
-			reqMap.Remove(k)
-			return true
-		}
-		if gstr.InArray(pageInfo, k) {
-			reqMap.Remove(k)
-			return true
-		}
-		reqMap.Remove(k)
-		newK := gstr.CaseConvert(k, kType)
-		reqMap.Set(newK, v)
-		if changMap != nil && changMap.Contains(k) {
-			vMap := gmap.NewStrAnyMapFrom(gconv.Map(changMap.Get(k)))
-			if vMap.Contains("op") {
-				reqMap.Remove(k)
-				reqMap.Set(fmt.Sprintf("%s %s", gstr.CaseConvert(k, kType), gstr.CaseConvert(gconv.String(vMap.Get("op")), kType)), vMap.Get("value"))
-				return true
-			}
-		}
-		return true
-	})
-	return reqMap.Map()
 }
 func (c Curd[R]) Builder(ctx context.Context) *gdb.WhereBuilder {
 	return c.Dao.Ctx(ctx).Builder()
