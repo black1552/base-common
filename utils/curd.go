@@ -210,9 +210,17 @@ func getORMOp(op string) string {
 	}
 	return "=" // 默认等值匹配
 }
-func (c Curd[R]) BuildMap(op string, value any) map[string]any {
+func (c Curd[R]) BuildMap(op string, value any, field ...string) map[string]any {
+	if len(field) > 0 {
+		return map[string]any{
+			"op":    op,
+			"field": field[0],
+			"value": value,
+		}
+	}
 	return map[string]any{
 		"op":    op,
+		"field": "",
 		"value": value,
 	}
 }
