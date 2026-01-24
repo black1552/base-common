@@ -99,6 +99,7 @@ func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gs
 		// 8. 优先使用changeFiles配置
 		finalOp := keyOp
 		finalField := convertedField
+		finalVal := val // 默认使用req的原始值
 		if changeMap.Size() > 0 {
 			// 分步判断：优先取转换后的字段名 → 原字段名 → 原始key
 			var changeVal any
@@ -117,6 +118,12 @@ func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gs
 					// 提取changeFiles中的操作符和目标字段（value不覆盖req的val）
 					confOp := gstr.ToLower(gconv.String(opMap["op"]))
 					confField := gconv.String(opMap["field"])
+					// 提取changeFiles中的value（关键修正点）
+					confVal := opMap["value"]
+					// 值优先级：req非空值 > changeFiles的value（关键修正点）
+					if !gutil.IsEmpty(confVal) {
+						finalVal = confVal // req值为空时，用changeFiles的value
+					}
 					if confField != "" {
 						finalField = confField
 					}
@@ -127,7 +134,11 @@ func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gs
 				}
 			}
 		}
-
+		// 8. 最终空值判断：仅跳过真正的空值（保留0、false、0.0等合法零值）
+		if gutil.IsEmpty(finalVal) {
+			reqMap.Remove(originalKey)
+			continue
+		}
 		// 9. 生成ORM合法的key（字段名 + 操作符）
 		var ormKey string
 		if finalOp != "" {
