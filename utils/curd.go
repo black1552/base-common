@@ -248,20 +248,29 @@ func (c Curd[R]) BuildMap(op string, value any) map[string]any {
 func (c Curd[R]) Builder(ctx context.Context) *gdb.WhereBuilder {
 	return c.Dao.Ctx(ctx).Builder()
 }
-func (c Curd[R]) ClearField(req any, delField []string) map[string]any {
-	m := gconv.Map(req)
-	for _, field := range delField {
-		delete(m, field)
+func (c Curd[R]) ClearField(req any, delField []string, subField ...map[string]any) map[string]any {
+	m := gmap.NewStrAnyMapFrom(gconv.Map(req))
+	if delField != nil && len(delField) > 0 {
+		m.Iterator(func(k string, v any) bool {
+			if g.IsEmpty(v) {
+				m.Remove(k)
+				return true
+			}
+			if gstr.InArray(delField, k) {
+				m.Remove(k)
+				return true
+			}
+			if gstr.InArray(pageInfo, k) {
+				m.Remove(k)
+				return true
+			}
+			return true
+		})
 	}
-	for k, v := range m {
-		if g.IsEmpty(v) {
-			delete(m, k)
-		}
-		if gstr.InArray(pageInfo, k) {
-			delete(m, k)
-		}
+	if subField != nil && len(subField) > 0 {
+		m.Merge(gmap.NewStrAnyMapFrom(subField[0]))
 	}
-	return m
+	return m.Map()
 }
 func (c Curd[R]) ClearFieldPage(ctx ctx, req any, delField []string, where any, page *Paginate, order any, with bool) (items []*R, total int, err error) {
 	db := c.Dao.Ctx(ctx)
