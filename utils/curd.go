@@ -7,6 +7,8 @@ import (
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 )
@@ -49,20 +51,24 @@ func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, removeFields
 	reqMap := gconv.Map(req)
 
 	// 清理空值和分页信息
+	ctx := gctx.New()
 	cleanedReq := make(map[string]any)
 	for k, v := range reqMap {
 		// 清理空值
 		if g.IsEmpty(v) {
+			glog.Debugf(ctx, "清理空值：%s", k)
 			continue
 		}
 		// 清理分页信息
 		if gstr.InArray(pageInfo, k) {
+			glog.Debugf(ctx, "清理分页信息：%s", k)
 			continue
 		}
 		if len(removeFields) > 0 && gstr.InArray(removeFields, k) {
+			glog.Debugf(ctx, "清理字段：%s", k)
 			continue
 		}
-		cleanedReq[k] = v
+		cleanedReq[gstr.CaseConvert(k, caseTypeValue)] = v
 	}
 
 	// 处理changeWhere
@@ -70,9 +76,11 @@ func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, removeFields
 		changeMap := gconv.Map(changeWhere)
 		for k, v := range changeMap {
 			if _, hasKey := cleanedReq[k]; !hasKey {
+				glog.Debugf(ctx, "处理changeWhere：%s", k)
 				continue
 			}
 			if len(removeFields) > 0 && gstr.InArray(removeFields, k) {
+				glog.Debugf(ctx, "清理应删除字段：%s", k)
 				continue
 			}
 			// 转换v为map
@@ -81,10 +89,13 @@ func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, removeFields
 			op, hasOp := vMap["op"]
 
 			if hasValue {
+				glog.Debugf(ctx, "变更字段存在value：%s", k)
 				// 构建新的键名
 				newKey := k
 				if hasOp && op != "" {
+					glog.Debugf(ctx, "变更字段存在op：%s", k)
 					newKey = k + " " + gconv.String(op)
+					delete(cleanedReq, k)
 				}
 				cleanedReq[newKey] = value
 			}
