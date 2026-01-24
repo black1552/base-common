@@ -38,7 +38,7 @@ var pageInfo = []string{
 	"page_num",
 }
 
-func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, isSnake ...bool) map[string]any {
+func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, removeFields []string, isSnake ...bool) map[string]any {
 	// 默认使用小写下划线方式
 	caseTypeValue := gstr.Snake
 	if len(isSnake) > 0 && isSnake[0] == false {
@@ -59,6 +59,9 @@ func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, isSnake ...b
 		if gstr.InArray(pageInfo, k) {
 			continue
 		}
+		if len(removeFields) > 0 && gstr.InArray(removeFields, k) {
+			continue
+		}
 		cleanedReq[k] = v
 	}
 
@@ -67,6 +70,9 @@ func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, isSnake ...b
 		changeMap := gconv.Map(changeWhere)
 		for k, v := range changeMap {
 			if _, hasKey := cleanedReq[k]; !hasKey {
+				continue
+			}
+			if len(removeFields) > 0 && gstr.InArray(removeFields, k) {
 				continue
 			}
 			// 转换v为map
