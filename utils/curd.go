@@ -141,47 +141,7 @@ func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gs
 		reqMap.Set(ormKey, val)
 	}
 
-	// 11. 第二步：新增逻辑 - 补充changeFiles中未在req中出现的key
-	if changeMap.Size() > 0 {
-		// 遍历changeFiles的所有key
-		for _, changeKey := range changeMap.Keys() {
-			changeVal := changeMap.Get(changeKey)
-			opMap := gconv.Map(changeVal)
-			if len(opMap) == 0 {
-				continue
-			}
-
-			// 提取配置中的核心字段：value（必须有）、field、op
-			confValue := opMap["value"]
-			// 空值不添加（保留0/false等合法零值）
-			if gutil.IsEmpty(confValue) {
-				continue
-			}
-
-			// 解析配置中的字段名和操作符
-			confField := gconv.String(opMap["field"])
-			if confField == "" {
-				// 未指定field则使用changeKey（并做格式转换）
-				confField = gstr.CaseConvert(changeKey, kType)
-			}
-			confOp := getORMOp(gstr.ToLower(gconv.String(opMap["op"])))
-
-			// 生成要添加的ORM key
-			var addORMKey string
-			if confOp != "" {
-				addORMKey = fmt.Sprintf("%s %s", confField, confOp)
-			} else {
-				addORMKey = confField // 默认等值匹配
-			}
-
-			// 检查该ORM key是否已存在，不存在则添加
-			if !reqMap.Contains(addORMKey) {
-				reqMap.Set(addORMKey, confValue)
-			}
-		}
-	}
-
-	// 12. 返回最终的orm查询map
+	// 11. 返回最终的orm查询map
 	return reqMap.Map()
 }
 
