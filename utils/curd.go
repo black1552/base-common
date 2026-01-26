@@ -2,17 +2,15 @@ package utils
 
 import (
 	"context"
-	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/database/gdb"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gctx"
+	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/gogf/gf/v2/util/gutil"
 )
 
 type ctx = context.Context
@@ -42,173 +40,98 @@ var pageInfo = []string{
 	"page_num",
 }
 
-// 预编译正则：匹配key中的操作符（支持 >、>=、<、<=、=、!=、LIKE、IN、NOT IN 等）
-var opRegex = regexp.MustCompile(`\s*(>=|<=|>|<|!=|=|LIKE|like|IN|in|NOT IN|not in)\s*`)
-
-// BuildWhere 构建适配goframe orm的map格式查询条件
-// req: 入参结构体/Map，存放查询条件（key可直接带操作符，如"age>="、"name like"）
-// changeFiles: 字段映射+操作符配置，格式如 {"name": {"op": "like", "field": "user_name", "value": "张%"}}
-// caseSnake: 字段命名格式转换类型（默认下划线命名）
-// 返回值: 可直接给goframe orm使用的where条件map
-func (c Curd[R]) BuildWhere(req any, changeFiles map[string]any, caseSnake ...gstr.CaseType) map[string]any {
-	// 1. 空值快速返回
-	if req == nil {
-		req = map[string]any{} // 确保后续处理不报错
+func (c Curd[R]) BuildWhere(req any, changeWhere any, subWhere any, removeFields []string, isSnake ...bool) map[string]any {
+	// 默认使用小写下划线方式
+	caseTypeValue := gstr.Snake
+	if len(isSnake) > 0 && isSnake[0] == false {
+		caseTypeValue = gstr.CamelLower
 	}
 
-	// 2. 初始化命名格式（默认下划线）
-	kType := gstr.Snake
-	if len(caseSnake) > 0 && caseSnake[0] != "" {
-		kType = caseSnake[0]
-	}
+	// 转换req为map
+	reqMap := gconv.Map(req)
 
-	// 3. 处理字段映射/操作符配置
-	changeMap := gmap.NewStrAnyMap()
-	if changeFiles != nil {
-		changeMap.Sets(changeFiles)
-	}
-
-	// 4. 安全转换req为Map（支持结构体/Map/指针等任意类型）
-	reqM := gconv.Map(req)
-	if reqM == nil {
-		reqM = map[string]any{}
-	}
-	reqMap := gmap.NewStrAnyMapFrom(reqM)
-
-	// 5. 第一步：处理req中的原始key（原有逻辑不变）
-	keys := reqMap.Keys()
-	for _, originalKey := range keys {
-		val := reqMap.Get(originalKey)
-		// 跳过分页字段
-		if gstr.InArray(pageInfo, originalKey) {
-			reqMap.Remove(originalKey)
+	// 清理空值和分页信息
+	ctx := gctx.New()
+	cleanedReq := make(map[string]any)
+	for k, v := range reqMap {
+		// 清理空值
+		if g.IsEmpty(v) {
+			glog.Debugf(ctx, "清理空值：%s", k)
 			continue
 		}
-
-		// 6. 精准空值判断：仅跳过真正的空值（保留0、false、0.0等合法零值）
-		if gutil.IsEmpty(val) {
-			reqMap.Remove(originalKey)
+		// 清理分页信息
+		if gstr.InArray(pageInfo, k) {
+			glog.Debugf(ctx, "清理分页信息：%s", k)
 			continue
 		}
+		if len(removeFields) > 0 && gstr.InArray(removeFields, k) {
+			glog.Debugf(ctx, "清理字段：%s", k)
+			continue
+		}
+		cleanedReq[gstr.CaseConvert(k, caseTypeValue)] = v
+	}
 
-		// 7. 解析req key中的「纯字段名」和「操作符」
-		fieldName, keyOp := parseKeyWithOp(originalKey)
-		// 字段名格式转换（如驼峰转下划线）
-		convertedField := gstr.CaseConvert(fieldName, kType)
-
-		// 8. 优先使用changeFiles配置
-		finalOp := keyOp
-		finalField := convertedField
-		finalVal := val // 默认使用req的原始值
-		if changeMap.Size() > 0 {
-			// 分步判断：优先取转换后的字段名 → 原字段名 → 原始key
-			var changeVal any
-			if changeMap.Contains(convertedField) {
-				changeVal = changeMap.Get(convertedField)
-			} else if changeMap.Contains(fieldName) {
-				changeVal = changeMap.Get(fieldName)
-			} else if changeMap.Contains(originalKey) {
-				changeVal = changeMap.Get(originalKey)
+	// 处理changeWhere
+	if changeWhere != nil {
+		changeMap := gconv.Map(changeWhere)
+		for k, v := range changeMap {
+			if _, hasKey := cleanedReq[k]; !hasKey {
+				glog.Debugf(ctx, "处理changeWhere：%s", k)
+				continue
 			}
+			if len(removeFields) > 0 && gstr.InArray(removeFields, k) {
+				glog.Debugf(ctx, "清理应删除字段：%s", k)
+				continue
+			}
+			// 转换v为map
+			vMap := gconv.Map(v)
+			value, hasValue := vMap["value"]
+			op, hasOp := vMap["op"]
 
-			// 仅当获取到有效值时处理
-			if changeVal != nil {
-				opMap := gconv.Map(changeVal)
-				if len(opMap) > 0 {
-					// 提取changeFiles中的操作符和目标字段（value不覆盖req的val）
-					confOp := gstr.ToLower(gconv.String(opMap["op"]))
-					confField := gconv.String(opMap["field"])
-					// 提取changeFiles中的value（关键修正点）
-					confVal := opMap["value"]
-					// 值优先级：req非空值 > changeFiles的value（关键修正点）
-					if !gutil.IsEmpty(confVal) {
-						finalVal = confVal // req值为空时，用changeFiles的value
-					}
-					if confField != "" {
-						finalField = confField
-					}
-					if confOp != "" {
-						// 转换为ORM标准操作符（如gt → >）
-						finalOp = getORMOp(confOp)
-					}
+			if hasValue {
+				glog.Debugf(ctx, "变更字段存在value：%s", k)
+				// 构建新的键名
+				newKey := k
+				if hasOp && op != "" {
+					glog.Debugf(ctx, "变更字段存在op：%s", k)
+					newKey = k + " " + gconv.String(op)
+					delete(cleanedReq, k)
 				}
+				cleanedReq[newKey] = value
 			}
 		}
-		// 8. 最终空值判断：仅跳过真正的空值（保留0、false、0.0等合法零值）
-		if gutil.IsEmpty(finalVal) {
-			reqMap.Remove(originalKey)
-			continue
+	}
+
+	// 变量名切换
+	resultMap := make(map[string]any)
+	for k, v := range cleanedReq {
+		// 提取原始键名（去掉op部分）
+		originalKey := k
+		opStr := ""
+		if opIndex := gstr.Pos(k, " "); opIndex > 0 {
+			originalKey = k[:opIndex]
+			opStr = k[opIndex+1:]
 		}
-		// 9. 生成ORM合法的key（字段名 + 操作符）
-		var ormKey string
-		if finalOp != "" {
-			ormKey = fmt.Sprintf("%s %s", finalField, finalOp)
-		} else {
-			ormKey = finalField
+
+		// 转换键名
+		convertedKey := originalKey
+		convertedKey = gstr.CaseConvert(convertedKey, caseTypeValue)
+
+		// 如果有op，重新构建键名
+		if opStr != "" {
+			convertedKey = convertedKey + " " + opStr
 		}
 
-		// 10. 移除原key，设置最终的ORM查询键值对
-		reqMap.Remove(originalKey)
-		reqMap.Set(ormKey, val)
+		resultMap[convertedKey] = v
 	}
-
-	// 11. 返回最终的orm查询map
-	return reqMap.Map()
-}
-
-// parseKeyWithOp 解析key，拆分出「纯字段名」和「操作符」
-// 支持的key格式：
-// - "age>=" → 字段名"age"，操作符">="
-// - "name like" → 字段名"name"，操作符"LIKE"
-// - "id in" → 字段名"id"，操作符"IN"
-// - "status" → 字段名"status"，操作符""
-func parseKeyWithOp(key string) (fieldName string, op string) {
-	// 去除首尾空格
-	key = strings.TrimSpace(key)
-	// 匹配操作符
-	matches := opRegex.FindStringSubmatch(key)
-	if len(matches) == 0 {
-		// 无操作符，直接返回原key（去空格）
-		return key, ""
+	// 合并subWhere
+	if subWhere != nil {
+		subMap := gconv.Map(subWhere)
+		resultM := gmap.NewStrAnyMapFrom(resultMap)
+		resultM.Merge(gmap.NewStrAnyMapFrom(subMap))
+		resultMap = resultM.Map()
 	}
-
-	// 提取操作符并标准化（如like → LIKE，in → IN）
-	op = strings.ToUpper(matches[1])
-	// 提取纯字段名（去除操作符部分，再去空格）
-	fieldName = strings.TrimSpace(opRegex.ReplaceAllString(key, ""))
-	return
-}
-
-// getORMOp 转换语义化操作符为goframe orm支持的标准操作符
-func getORMOp(op string) string {
-	opMap := map[string]string{
-		"=":           "=",
-		"!=":          "!=",
-		">":           ">",
-		"<":           "<",
-		">=":          ">=",
-		"<=":          "<=",
-		"<>":          "<>",
-		"between":     "BETWEEN",
-		"is null":     "IS NULL",
-		"is not null": "IS NOT NULL",
-		"is":          "IS",
-		"is not":      "IS NOT",
-		"eq":          "=",
-		"ne":          "!=",
-		"gt":          ">",
-		"gte":         ">=",
-		"lt":          "<",
-		"lte":         "<=",
-		"like":        "LIKE",
-		"in":          "IN",
-		"not in":      "NOT IN",
-		"":            "", // 空操作符
-	}
-	if val, ok := opMap[op]; ok {
-		return val
-	}
-	return "=" // 默认等值匹配
+	return resultMap
 }
 func (c Curd[R]) BuildMap(op string, value any, field ...string) map[string]any {
 	if len(field) > 0 {
