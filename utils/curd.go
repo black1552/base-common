@@ -361,7 +361,10 @@ func (c Curd[R]) All(ctx ctx, where any, order any, with bool) (items []*R, err 
 	if with {
 		db = db.WithAll()
 	}
-	err = db.Where(where).Order(order).Scan(&items)
+	if !g.IsNil(order) {
+		db = db.Order(order)
+	}
+	err = db.Where(where).Scan(&items)
 	if err != nil {
 		return nil, err
 	}
@@ -406,8 +409,8 @@ func (c Curd[R]) Paginate(ctx context.Context, where any, p Paginate, with bool,
 		query = query.Where(where)
 	}
 	query = query.Page(p.Page, p.Limit)
-	if order == nil {
-		order = "create_time desc"
+	if order != nil {
+		query = query.Order(order)
 	}
 	if with == true {
 		query = query.WithAll()
