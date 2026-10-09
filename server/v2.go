@@ -317,10 +317,11 @@ var uploadPath = filepath.Join(gfile.Pwd(), "resource")
  * @return *ghttp.Server 服务实例
  */
 func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...int64) *ghttp.Server {
-	// var s *ghttp.Server
 	s := g.Server()
+	s.SetFileServerEnabled(true)
+	s.AddSearchPath(gfile.Join(gfile.Pwd(), "resource"))
 	s.SetDumpRouterMap(false)
-	s.AddStaticPath(gfile.Join(gfile.Pwd(), "static"), uploadPath)
+	s.AddStaticPath("/static", gfile.Join(gfile.Pwd(), "resource"))
 	err := s.SetLogPath(gfile.Join(gfile.Pwd(), "resource", "log"))
 	if err != nil {
 		log.Errorf("启动服务进程失败: %+v", err)
