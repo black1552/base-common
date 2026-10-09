@@ -2,9 +2,9 @@ package excel
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 
+	"github.com/black1552/base-common/log"
 	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -72,13 +72,13 @@ func ExcelDownCol(f *excelize.File, dropdownCols []DropdownCol) *excelize.File {
 
 		// 设置下拉列表选项
 		if err := dv.SetDropList(dropdown.Options); err != nil {
-			fmt.Errorf("设置下拉选项失败: %w", err)
+			log.Errorf("设置下拉选项失败: %+v", err)
 			continue
 		}
 
 		// 添加数据验证到工作表
 		if err := f.AddDataValidation("sheet1", dv); err != nil {
-			fmt.Errorf("添加下拉框失败: %w", err)
+			log.Errorf("添加下拉框失败: %+v", err)
 			continue
 		}
 
@@ -92,7 +92,7 @@ func ExcelDownCol(f *excelize.File, dropdownCols []DropdownCol) *excelize.File {
 				{Text: JoinOptions(dropdown.Options)},
 			},
 		}); err != nil {
-			log.Printf("添加注释失败: %v", err)
+			log.Errorf("添加注释失败: %+v", err)
 			continue
 		}
 	}
@@ -134,7 +134,7 @@ func CenterCol(f *excelize.File) int {
 		},
 	})
 	if err != nil {
-		fmt.Println("创建样式失败:", err)
+		log.Errorf("创建样式失败: %+v", err)
 		return 0
 	}
 	return style

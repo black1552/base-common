@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/black1552/base-common/log"
 	"github.com/gogf/gf/v2/os/glog"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -319,10 +320,10 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	// var s *ghttp.Server
 	s := g.Server()
 	s.SetDumpRouterMap(false)
-	s.AddStaticPath(fmt.Sprintf("%vstatic", gfile.Separator), uploadPath)
+	s.AddStaticPath(gfile.Join(gfile.Pwd(), "static"), uploadPath)
 	err := s.SetLogPath(gfile.Join(gfile.Pwd(), "resource", "log"))
 	if err != nil {
-		fmt.Println(err)
+		log.Errorf("启动服务进程失败: %+v", err)
 	}
 	s.SetLogLevel("all")
 	s.SetLogStdout(false)
@@ -339,7 +340,7 @@ func Start(agent string, maxSessionTime time.Duration, isApi bool, maxBody ...in
 	s.SetMaxHeaderBytes(1024 * 20)
 	s.SetErrorStack(true)
 	s.SetSessionIdName("zrSession")
-	s.SetAccessLogEnabled(true)
+	s.SetAccessLogEnabled(false)
 	s.SetSessionMaxAge(maxSessionTime)
 	err = s.SetConfigWithMap(g.Map{
 		"sessionPath": gfile.Join(gfile.Pwd(), "resource", "session"),

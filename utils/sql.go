@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 
+	"github.com/black1552/base-common/log"
 	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/database/gdb"
@@ -51,51 +52,51 @@ func NewClient[R any](request any, url string, header map[string]string) *SClien
 	return s
 }
 func (w *SClient[R]) Post(ctx context.Context) (res *R, err error) {
-	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "post", w.request)
+	log.Infof("请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "post", w.request)
 	resp := w.client.PostVar(ctx, w.url, w.request)
 	err = gconv.Struct(resp, &res)
 	if err != nil {
-		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		log.Errorf("解析响应体异常：%s", err)
 		return nil, err
 	}
 	return
 }
 func (w *SClient[R]) Get(ctx context.Context) (res *R, err error) {
-	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "get", w.request)
+	log.Infof("请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "get", w.request)
 	resp := w.client.GetVar(ctx, w.url, w.request)
 	err = gconv.Struct(resp, &res)
 	if err != nil {
-		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		log.Errorf("解析响应体异常：%s", err)
 		return nil, err
 	}
 	return
 }
 func (w *SClient[R]) Put(ctx context.Context) (res *R, err error) {
-	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "put", w.request)
+	log.Infof("请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "put", w.request)
 	resp := w.client.PutVar(ctx, w.url, w.request)
 	err = gconv.Struct(resp, &res)
 	if err != nil {
-		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		log.Errorf("解析响应体异常：%s", err)
 		return nil, err
 	}
 	return
 }
 func (w *SClient[R]) Delete(ctx context.Context) (res *R, err error) {
-	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "delete", w.request)
+	log.Infof("请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "delete", w.request)
 	resp := w.client.DeleteVar(ctx, w.url, w.request)
 	err = gconv.Struct(resp, &res)
 	if err != nil {
-		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		log.Errorf("解析响应体异常：%s", err)
 		return nil, err
 	}
 	return
 }
 func (w *SClient[R]) Patch(ctx context.Context) (res *R, err error) {
-	g.Log().Infof(ctx, "请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "patch", w.request)
+	log.Infof("请求Url:%s,请求头:%v,请求方法：%s,请求内容：%s", w.url, w.header, "patch", w.request)
 	resp := w.client.PatchVar(ctx, w.url, w.request)
 	err = gconv.Struct(resp, &res)
 	if err != nil {
-		g.Log().Errorf(ctx, "解析响应体异常：%s", err)
+		log.Errorf("解析响应体异常：%s", err)
 		return nil, err
 	}
 	return

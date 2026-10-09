@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/black1552/base-common/log"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 // Client MQTT客户端结构
@@ -40,7 +40,7 @@ func NewClientWithAuth(ctx context.Context, broker, clientId, username, password
 	opts.SetPassword(password)
 	// 设置连接丢失处理函数
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		glog.Error(ctx, "MQTT连接断开:", err)
+		log.Errorf("MQTT连接断开: %+v", err)
 		if c.onConnectionLost != nil {
 			c.onConnectionLost(err)
 		}
@@ -48,7 +48,7 @@ func NewClientWithAuth(ctx context.Context, broker, clientId, username, password
 
 	// 设置重连处理函数
 	opts.SetReconnectingHandler(func(client mqtt.Client, opts *mqtt.ClientOptions) {
-		glog.Info(ctx, "MQTT客户端正在尝试重连...")
+		log.Info("MQTT客户端正在尝试重连...")
 		if c.onReconnect != nil {
 			c.onReconnect()
 		}
@@ -56,7 +56,7 @@ func NewClientWithAuth(ctx context.Context, broker, clientId, username, password
 
 	// 设置连接成功处理函数，重连成功后重新订阅主题
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		glog.Info(ctx, "MQTT客户端重新连接成功")
+		log.Info("MQTT客户端重新连接成功")
 		if c.onConnect != nil {
 			c.onConnect()
 		}
@@ -74,25 +74,25 @@ func NewClientWithAuth(ctx context.Context, broker, clientId, username, password
 
 // Connect 连接到MQTT服务器
 func (c *Client) Connect() error {
-	glog.Info(c.ctx, "开始连接到MQTT服务器...")
+	log.Info("开始连接到MQTT服务器...")
 	token := c.client.Connect()
-	glog.Info(c.ctx, "等待连接完成...")
+	log.Info("等待连接完成...")
 
 	// 使用更长的超时时间，避免网络延迟导致连接失败
 	if token.WaitTimeout(30 * time.Second) {
-		glog.Info(c.ctx, "连接操作完成")
+		log.Info("连接操作完成")
 		if token.Error() != nil {
 			err := fmt.Errorf("连接到MQTT代理时发生错误: %w", token.Error())
-			glog.Error(c.ctx, "连接MQTT服务器时发生错误:", token.Error())
+			log.Error("连接MQTT服务器时发生错误:", token.Error())
 			return err
 		}
 	} else {
 		// 连接超时
 		err := fmt.Errorf("连接到MQTT服务器超时")
-		glog.Error(c.ctx, "连接MQTT服务器超时")
+		log.Error("连接MQTT服务器超时")
 		return err
 	}
-	glog.Info(c.ctx, "成功连接到MQTT服务器")
+	log.Info("成功连接到MQTT服务器")
 	return nil
 }
 
@@ -100,7 +100,7 @@ func (c *Client) Connect() error {
 func (c *Client) Disconnect() {
 	if c.client.IsConnected() {
 		c.client.Disconnect(250)
-		glog.Info(c.ctx, "已断开MQTT连接")
+		log.Info("已断开MQTT连接")
 	}
 }
 
@@ -118,7 +118,7 @@ func (c *Client) SubscribeMultiple(topics map[string]byte, callback mqtt.Message
 	// 增加订阅超时时间
 	if token.WaitTimeout(30*time.Second) && token.Error() != nil {
 		err := fmt.Errorf("同时订阅多个主题出现错误: %w", token.Error())
-		glog.Error(c.ctx, "订阅主题时发生错误:", token.Error())
+		log.Error("订阅主题时发生错误:", token.Error())
 		if c.onSubscriptionError != nil {
 			c.onSubscriptionError(err)
 		}
@@ -127,10 +127,10 @@ func (c *Client) SubscribeMultiple(topics map[string]byte, callback mqtt.Message
 
 	// 检查订阅是否成功
 	if token.WaitTimeout(30 * time.Second) {
-		glog.Info(c.ctx, "成功订阅主题:", topics)
+		log.Info("成功订阅主题:", topics)
 	} else {
 		err := fmt.Errorf("订阅主题超时: %v", topics)
-		glog.Error(c.ctx, "订阅主题超时:", topics)
+		log.Error("订阅主题超时:", topics)
 		if c.onSubscriptionError != nil {
 			c.onSubscriptionError(err)
 		}
@@ -146,7 +146,7 @@ func (c *Client) Publish(topic string, qos byte, retained bool, payload interfac
 	// 增加发布超时时间
 	if token.WaitTimeout(30*time.Second) && token.Error() != nil {
 		err := fmt.Errorf("发送消息到主题%s出现错误: %w", topic, token.Error())
-		glog.Error(c.ctx, "发布消息到主题", topic, "时发生错误:", token.Error())
+		log.Error("发布消息到主题", topic, "时发生错误:", token.Error())
 		if c.onPublishError != nil {
 			c.onPublishError(err)
 		}
@@ -155,10 +155,10 @@ func (c *Client) Publish(topic string, qos byte, retained bool, payload interfac
 
 	// 检查发布是否成功
 	if token.WaitTimeout(30 * time.Second) {
-		glog.Info(c.ctx, "成功发布消息到主题:", topic)
+		log.Info("成功发布消息到主题:", topic)
 	} else {
 		err := fmt.Errorf("发布消息到主题%s超时", topic)
-		glog.Error(c.ctx, "发布消息到主题超时:", topic)
+		log.Error("发布消息到主题超时:", topic)
 		if c.onPublishError != nil {
 			c.onPublishError(err)
 		}
@@ -174,7 +174,7 @@ func (c *Client) resubscribe() {
 	defer c.subMutex.RUnlock()
 
 	if len(c.subscribed) == 0 {
-		glog.Info(c.ctx, "没有需要重新订阅的主题")
+		log.Info("没有需要重新订阅的主题")
 		return
 	}
 
@@ -184,22 +184,22 @@ func (c *Client) resubscribe() {
 		topics[topic] = qos
 	}
 
-	glog.Info(c.ctx, "开始重新订阅主题:", topics)
+	log.Info("开始重新订阅主题:", topics)
 	// 增加重新订阅的超时时间
 	token := c.client.SubscribeMultiple(topics, c.callback)
 	if token.WaitTimeout(30 * time.Second) {
 		if token.Error() != nil {
 			err := fmt.Errorf("重新订阅主题时发生错误: %w", token.Error())
-			glog.Error(c.ctx, "重新订阅主题时发生错误:", token.Error())
+			log.Error("重新订阅主题时发生错误:", token.Error())
 			if c.onSubscriptionError != nil {
 				c.onSubscriptionError(err)
 			}
 		} else {
-			glog.Info(c.ctx, "重新订阅主题成功")
+			log.Info("重新订阅主题成功")
 		}
 	} else {
 		err := fmt.Errorf("重新订阅主题超时")
-		glog.Error(c.ctx, "重新订阅主题超时")
+		log.Error("重新订阅主题超时")
 		if c.onSubscriptionError != nil {
 			c.onSubscriptionError(err)
 		}
@@ -209,7 +209,7 @@ func (c *Client) resubscribe() {
 // IsConnected 检查是否连接
 func (c *Client) IsConnected() bool {
 	isConnected := c.client.IsConnected()
-	glog.Debug(c.ctx, "检查连接状态:", isConnected)
+	log.Debug("检查连接状态:", isConnected)
 	return isConnected
 }
 

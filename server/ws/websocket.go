@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/black1552/base-common/log"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -177,13 +177,13 @@ func NewManager(config *Config) *Manager {
 		mutex:       sync.RWMutex{},
 		// 默认回调（用户可覆盖）
 		OnMessage: func(connID string, msgType int, data any) {
-			log.Printf("[默认回调] 收到连接[%s]消息：%s", connID, gconv.String(data))
+			log.Info("[默认回调] 收到连接[%s]消息：%s", connID, gconv.String(data))
 		},
 		OnConnect: func(connID string) {
-			log.Printf("[默认回调] 连接[%s]已建立", connID)
+			log.Info("[默认回调] 连接[%s]已建立", connID)
 		},
 		OnDisconnect: func(connID string, err error) {
-			log.Printf("[默认回调] 连接[%s]已关闭：%v", connID, err)
+			log.Info("[默认回调] 连接[%s]已关闭：%v", connID, err)
 		},
 	}
 }
@@ -225,7 +225,7 @@ func (m *Manager) Upgrade(w http.ResponseWriter, r *http.Request, connID string)
 		heartbeatRetry: 0,
 	}
 	wsConn.heartbeatTime = gtimer.AddSingleton(gctx.New(), m.config.HeartbeatTimeout, func(ctx context.Context) {
-		log.Printf("[心跳检测] 连接[%s]已关闭：心跳超时", wsConn.connID)
+		log.Info("[心跳检测] 连接[%s]已关闭：心跳超时", wsConn.connID)
 		wsConn.heartbeatTime.Close()
 		wsConn.heartbeatTime.Stop()
 		wsConn.heartbeatTime = nil
@@ -255,7 +255,7 @@ func (c *Connection) ReadPump() {
 	defer func() {
 		// 发生panic时关闭连接
 		if err := recover(); err != nil {
-			log.Printf("连接[%s]读消息协程panic：%v", c.connID, err)
+			log.Errorf("连接[%s]读消息协程panic：%v", c.connID, err)
 		}
 		// 关闭连接并清理
 		c.Close(fmt.Errorf("读消息协程退出"))
@@ -300,16 +300,16 @@ func (c *Connection) ReadPump() {
 				}
 			}
 			if isHeartbeat {
-				log.Printf("[心跳] 收到连接[%s]心跳消息：%s", c.connID, string(data))
+				log.Infof("[心跳] 收到连接[%s]心跳消息：%s", c.connID, string(data))
 				// 心跳消息：重置重试次数 + 发送心跳信号 + 重置读超时
 				js, err := gjson.Encode(&Msg[any]{c.manager.config.HeartbeatValue, nil, gtime.Timestamp()})
 				if err != nil {
-					log.Printf("[心跳] 客户端[%s]json编码失败", c.connID)
+					log.Infof("[心跳] 客户端[%s]json编码失败", c.connID)
 					continue
 				}
 				err = c.Send(js)
 				if err != nil {
-					log.Printf("[心跳] 客户端[%s]发送心跳消息失败", c.connID)
+					log.Infof("[心跳] 客户端[%s]发送心跳消息失败", c.connID)
 					continue
 				}
 				c.heartbeatTime.Reset()
@@ -333,7 +333,7 @@ type Msg[T any] struct {
 func (c *Connection) WritePump() {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("连接[%s]写消息协程panic：%v", c.connID, err)
+			log.Errorf("连接[%s]写消息协程panic：%v", c.connID, err)
 		}
 	}()
 
@@ -345,7 +345,7 @@ func (c *Connection) WritePump() {
 func (c *Connection) Heartbeat() {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("连接[%s]心跳协程panic：%v", c.connID, err)
+			log.Errorf("连接[%s]心跳协程panic：%v", c.connID, err)
 		}
 	}()
 	c.heartbeatTime.Start()
@@ -397,7 +397,7 @@ func (c *Connection) Close(err error) {
 	// 触发断开回调
 	c.manager.OnDisconnect(c.connID, err)
 
-	log.Printf("连接[%s]已关闭，当前在线数：%d，原因：%v", c.connID, c.manager.GetOnlineCount(), err)
+	log.Infof("连接[%s]已关闭，当前在线数：%d，原因：%v", c.connID, c.manager.GetOnlineCount(), err)
 }
 
 // GetOnlineCount 获取在线连接数

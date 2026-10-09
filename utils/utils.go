@@ -4,14 +4,13 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"image/jpeg"
 	"math/big"
 	"os"
 
+	"github.com/black1552/base-common/log"
 	"github.com/gogf/gf/v2/container/garray"
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gres"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -95,7 +94,7 @@ func ResAddFile(onePath string) {
 			panic(err)
 		}
 	}
-	g.Log().Debug(gctx.GetInitCtx(), onePath)
+	log.Debug(onePath)
 	gres.Dump()
 	if gres.IsEmpty() {
 		return
@@ -147,9 +146,9 @@ func GetFileList(path string) []string {
 	if path == "" {
 		path = "/"
 	}
-	filePath := fmt.Sprintf("%s%sresource", gfile.Pwd(), gfile.Separator)
+	filePath := gfile.Join(gfile.Pwd(), "resource")
 	if path != "/" {
-		filePath += gfile.Separator + path + gfile.Separator
+		filePath = gfile.Join(filePath, path)
 	}
 	paths, _ := gfile.DirNames(filePath)
 	pathArr := garray.NewStrArray()
