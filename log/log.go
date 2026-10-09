@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gogf/gf/v2/os/gfile"
@@ -17,13 +16,13 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type sLogger struct {
+var (
 	logPath     string
 	sysLog      *log.Logger
 	filePath    string
 	currentDate string // 当前日志文件对应的日期
 	fileLogger  *lumberjack.Logger
-}
+)
 
 const (
 	Reset  = "\033[0m"
@@ -64,26 +63,21 @@ func (w *logWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-var (
-	logs   *sLogger
-	initMu sync.Mutex // 用于保护初始化过程的互斥锁
-)
-
 // cleanOldLogs 删除指定天数之前的日志文件（包括主文件和备份文件）
 func cleanOldLogs(days int) {
-	if !gfile.Exists(logs.logPath) {
+	if !gfile.Exists(logPath) {
 		return
 	}
 
 	// 获取所有日志文件
-	files, err := gfile.DirNames(logs.logPath)
+	files, err := gfile.DirNames(logPath)
 	if err != nil {
 		return
 	}
 
 	now := time.Now()
 	for _, file := range files {
-		path := filepath.Join(logs.logPath, file)
+		path := filepath.Join(logPath, file)
 		if gfile.IsDir(path) {
 			continue
 		}
@@ -134,12 +128,12 @@ func cleanOldLogs(days int) {
 // checkAndRotateLogFile 检查是否需要切换日志文件（跨天时）
 func checkAndRotateLogFile() {
 	date := gtime.Date()
-	if logs.currentDate != date {
+	if currentDate != date {
 		// 日期变化，需要重新初始化
-		logs.currentDate = date
-		logs.filePath = gfile.Join(logs.logPath, fmt.Sprintf("log-%s.log", logs.currentDate))
-		logs.fileLogger = &lumberjack.Logger{
-			Filename:   logs.filePath,
+		currentDate = date
+		filePath = gfile.Join(logPath, fmt.Sprintf("log-%s.log", currentDate))
+		fileLogger = &lumberjack.Logger{
+			Filename:   filePath,
 			MaxSize:    2,     // 单个文件最大 10MB
 			MaxBackups: 5,     // 最多保留 5 个备份
 			MaxAge:     30,    // 保留 30 天
@@ -148,9 +142,9 @@ func checkAndRotateLogFile() {
 		// 创建新的 writer
 		multiWriter := &logWriter{
 			console: os.Stdout,
-			file:    logs.fileLogger,
+			file:    fileLogger,
 		}
-		logs.sysLog = log.New(multiWriter, "", 0)
+		sysLog = log.New(multiWriter, "", 0)
 
 		// 清理 30 天前的旧日志
 		cleanOldLogs(30)
@@ -158,109 +152,69 @@ func checkAndRotateLogFile() {
 }
 
 func Init() {
-	// 如果已经初始化，检查是否需要切换文件
-	if logs != nil && logs.sysLog != nil {
-		checkAndRotateLogFile()
+	if sysLog != nil {
+		checkAndRotateLogFile() // 检查是否需要切换文件
 		return
 	}
-
-	// 加锁确保线程安全
-	initMu.Lock()
-	defer initMu.Unlock()
-
-	// 双重检查，避免重复初始化
-	if logs != nil && logs.sysLog != nil {
-		return
-	}
-
-	// 初始化日志器
-	currentDate := gtime.Date()
-	logPath := gfile.Join(gfile.Pwd(), "logs")
-	filePath := gfile.Join(logPath, fmt.Sprintf("log-%s.log", currentDate))
-
-	// 创建 lumberjack 日志文件处理器
-	fileLogger := &lumberjack.Logger{
+	logPath = gfile.Join(gfile.Pwd(), "logs")
+	currentDate = gtime.Date()
+	filePath = gfile.Join(logPath, fmt.Sprintf("log-%s.log", currentDate))
+	fileLogger = &lumberjack.Logger{
 		Filename:   filePath,
-		MaxSize:    2,     // 单个文件最大 2MB
+		MaxSize:    2,     // 单个文件最大 10MB
 		MaxBackups: 5,     // 最多保留 5 个备份
 		MaxAge:     30,    // 保留 30 天
-		Compress:   false, // 不启用压缩
+		Compress:   false, // 启用压缩
 	}
-
 	// 使用自定义 writer 实现控制台带颜色、文件无颜色的输出
 	multiWriter := &logWriter{
 		console: os.Stdout,
 		file:    fileLogger,
 	}
-
-	logs = &sLogger{
-		logPath:     logPath,
-		sysLog:      log.New(multiWriter, "", 0),
-		fileLogger:  fileLogger,
-		filePath:    filePath,
-		currentDate: currentDate,
-	}
+	sysLog = log.New(multiWriter, "", 0)
 
 	// 启动时清理 30 天前的旧日志
 	cleanOldLogs(30)
 }
 
-func (s *sLogger) Info(v ...any) {
-	Init()
-	s.sysLog.SetPrefix(fmt.Sprintf("[%s] %s[INFO]%s ", time.Now().Format("2006-01-02 15:04:05"), Green, Reset))
-	s.sysLog.Println(fmt.Sprint(v...))
-}
-func (s *sLogger) Error(v ...any) {
-	Init()
-	s.sysLog.SetPrefix(fmt.Sprintf("[%s] %s[ERROR]%s ", time.Now().Format("2006-01-02 15:04:05"), Red, Reset))
-	msg := fmt.Sprint(v...)
-	s.sysLog.Println(msg, strings.TrimSpace(string(debug.Stack())))
-}
-func (s *sLogger) Warn(v ...any) {
-	Init()
-	s.sysLog.SetPrefix(fmt.Sprintf("[%s] %s[WARN]%s ", time.Now().Format("2006-01-02 15:04:05"), Yellow, Reset))
-	s.sysLog.Println(fmt.Sprint(v...))
-}
-func (s *sLogger) Debug(v ...any) {
-	Init()
-	s.sysLog.SetPrefix(fmt.Sprintf("[%s] %s[DEBUG]%s ", time.Now().Format("2006-01-02 15:04:05"), Blue, Reset))
-	s.sysLog.Println(fmt.Sprint(v...))
-}
-
 func Info(v ...any) {
-	if logs == nil {
-		Init()
-	}
-	logs.Info(v...)
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[INFO]%s ", time.Now().Format("2006-01-02 15:04:05"), Green, Reset))
+	sysLog.Println(fmt.Sprint(v...))
 }
 func Error(v ...any) {
-	if logs == nil {
-		Init()
-	}
-	logs.Error(v...)
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[ERROR]%s ", time.Now().Format("2006-01-02 15:04:05"), Red, Reset))
+	msg := fmt.Sprint(v...)
+	sysLog.Println(msg, strings.TrimSpace(string(debug.Stack())))
 }
 func Warn(v ...any) {
-	if logs == nil {
-		Init()
-	}
-	logs.Warn(v...)
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[WARN]%s ", time.Now().Format("2006-01-02 15:04:05"), Yellow, Reset))
+	sysLog.Println(fmt.Sprint(v...))
 }
 func Debug(v ...any) {
-	if logs == nil {
-		Init()
-	}
-	logs.Debug(v...)
-}
-
-// GetLogger 返回自定义日志器实例，实现 ILogger 接口
-func GetLogger() ILogger {
 	Init()
-	return logs
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[DEBUG]%s ", time.Now().Format("2006-01-02 15:04:05"), Blue, Reset))
+	sysLog.Println(fmt.Sprint(v...))
 }
-
-type ILogger interface {
-	Info(v ...any)
-	Error(v ...any)
-	Warn(v ...any)
-	Debug(v ...any)
+func Infof(format string, v ...any) {
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[INFO]%s ", time.Now().Format("2006-01-02 15:04:05"), Green, Reset))
+	sysLog.Println(fmt.Sprintf(format, v...))
+}
+func Errorf(format string, v ...any) {
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[ERROR]%s ", time.Now().Format("2006-01-02 15:04:05"), Red, Reset))
+	sysLog.Println(fmt.Sprintf(format, v...), strings.TrimSpace(string(debug.Stack())))
+}
+func Warnf(format string, v ...any) {
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[WARN]%s ", time.Now().Format("2006-01-02 15:04:05"), Yellow, Reset))
+	sysLog.Println(fmt.Sprintf(format, v...))
+}
+func Debugf(format string, v ...any) {
+	Init()
+	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[DEBUG]%s ", time.Now().Format("2006-01-02 15:04:05"), Blue, Reset))
+	sysLog.Println(fmt.Sprintf(format, v...))
 }
