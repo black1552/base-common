@@ -182,11 +182,12 @@ func Info(v ...any) {
 	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[INFO]%s ", time.Now().Format("2006-01-02 15:04:05"), Green, Reset))
 	sysLog.Println(fmt.Sprint(v...))
 }
-func Error(v ...any) {
+func Error(v ...any) error {
 	Init()
 	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[ERROR]%s ", time.Now().Format("2006-01-02 15:04:05"), Red, Reset))
 	msg := fmt.Sprint(v...)
 	sysLog.Println(msg, strings.TrimSpace(string(debug.Stack())))
+	return fmt.Errorf(msg)
 }
 func Warn(v ...any) {
 	Init()
@@ -203,10 +204,11 @@ func Infof(format string, v ...any) {
 	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[INFO]%s ", time.Now().Format("2006-01-02 15:04:05"), Green, Reset))
 	sysLog.Println(fmt.Sprintf(format, v...))
 }
-func Errorf(format string, v ...any) {
+func Errorf(format string, v ...any) error {
 	Init()
 	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[ERROR]%s ", time.Now().Format("2006-01-02 15:04:05"), Red, Reset))
 	sysLog.Println(fmt.Sprintf(format, v...), strings.TrimSpace(string(debug.Stack())))
+	return fmt.Errorf(format, v...)
 }
 func Warnf(format string, v ...any) {
 	Init()
