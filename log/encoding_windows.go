@@ -4,42 +4,47 @@ package log
 
 import (
 	"syscall"
+	"unsafe"
 
 	"golang.org/x/text/encoding"
-	"golang.org/x/text/encoding/charmap"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/encoding/traditionalchinese"
 )
 
-// systemConsoleEncoding 探测当前 Windows 控制台的输出代码页，
-// 返回对应的编码，使日志字节编码追随系统，避免中文乱码。
-// 返回 nil 表示无需转码（UTF-8 直出）。
-func systemConsoleEncoding() encoding.Encoding {
+const (
+	stdOutputHandle    = ^uintptr(0) - 10 // STD_OUTPUT_HANDLE = -11
+	invalidHandleValue = ^uintptr(0)      // INVALID_HANDLE_VALUE
+)
+
+// isConsole 判断标准输出是否连接到真实的 Windows 控制台。
+// 若被重定向（IDE、管道、文件等），GetConsoleMode 会失败并返回 false。
+func isConsole() bool {
+	kernel32 := syscall.NewLazyDLL("kernel32.dll")
+	getStdHandle := kernel32.NewProc("GetStdHandle")
+	getConsoleMode := kernel32.NewProc("GetConsoleMode")
+
+	handle, _, _ := getStdHandle.Call(stdOutputHandle)
+	if handle == 0 || handle == invalidHandleValue {
+		return false
+	}
+
+	var mode uint32
+	ret, _, _ := getConsoleMode.Call(handle, uintptr(unsafe.Pointer(&mode)))
+	return ret != 0
+}
+
+// getConsoleOutputCP 获取当前控制台输出代码页。
+func getConsoleOutputCP() uint32 {
 	kernel32 := syscall.NewLazyDLL("kernel32.dll")
 	proc := kernel32.NewProc("GetConsoleOutputCP")
-	codePage, _, _ := proc.Call()
+	ret, _, _ := proc.Call()
+	return uint32(ret)
+}
 
-	switch uint32(codePage) {
-	case 65001: // UTF-8
-		return nil
-	case 936: // 简体中文 GBK
-		return simplifiedchinese.GBK
-	case 54936: // GB18030
-		return simplifiedchinese.GB18030
-	case 20936: // 简体中文 HZ-GB2312
-		return simplifiedchinese.HZGB2312
-	case 950, 951: // 繁体中文 Big5
-		return traditionalchinese.Big5
-	case 1252: // Windows 西欧
-		return charmap.Windows1252
-	case 1251: // Windows 西里尔
-		return charmap.Windows1251
-	case 437: // DOS 美国
-		return charmap.CodePage437
-	case 850: // DOS  Multilingual
-		return charmap.CodePage850
-	default:
-		// 未知代码页时按 UTF-8 处理
+// systemConsoleEncoding 使日志的控制台字节编码追随系统：
+//   - 真实控制台：按当前代码页转码（如中文环境的 GBK），避免乱码；
+//   - 被重定向（IDE/管道/文件）：输出 UTF-8，因为接收方普遍按 UTF-8 解析。
+func systemConsoleEncoding() encoding.Encoding {
+	if !isConsole() {
 		return nil
 	}
+	return encodingForCodePage(getConsoleOutputCP())
 }

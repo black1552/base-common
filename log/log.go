@@ -197,7 +197,7 @@ func Error(v ...any) error {
 	sysLog.SetPrefix(fmt.Sprintf("[%s] %s[ERROR]%s ", time.Now().Format("2006-01-02 15:04:05"), Red, Reset))
 	msg := fmt.Sprint(v...)
 	sysLog.Println(msg, strings.TrimSpace(string(debug.Stack())))
-	return fmt.Errorf(msg)
+	return fmt.Errorf("%s", msg)
 }
 func Warn(v ...any) {
 	Init()
