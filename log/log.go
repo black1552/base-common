@@ -13,7 +13,6 @@ import (
 
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gtime"
-	"golang.org/x/text/encoding"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -43,26 +42,20 @@ func stripAnsiColors(s string) string {
 	return ansiColorRegex.ReplaceAllString(s, "")
 }
 
-// logWriter 自定义 writer，用于分别处理控制台和文件输出
+// logWriter 自定义 writer，用于分别处理控制台和文件输出。
+// 统一使用 UTF-8 字节编码，保证 Linux/Windows 控制台与日志文件都能正常显示汉字。
 type logWriter struct {
 	console io.Writer
 	file    io.Writer
-	enc     encoding.Encoding // 控制台输出编码，追随系统；nil 表示 UTF-8 直出
 }
 
 func (w *logWriter) Write(p []byte) (n int, err error) {
-	// 控制台输出保留颜色，并按系统编码转码（如 Windows 中文控制台的 GBK）
-	consoleBytes := p
-	if w.enc != nil {
-		if dst, e := w.enc.NewEncoder().Bytes(p); e == nil {
-			consoleBytes = dst
-		}
-	}
-	_, err = w.console.Write(consoleBytes)
+	// 控制台输出 UTF-8 字节，保留 ANSI 颜色
+	_, err = w.console.Write(p)
 	if err != nil {
 		return 0, err
 	}
-	// 文件输出保持 UTF-8 并去除颜色码
+	// 文件输出 UTF-8 字节并去除颜色码
 	colorless := stripAnsiColors(string(p))
 	_, err = w.file.Write([]byte(colorless))
 	if err != nil {
@@ -151,7 +144,6 @@ func checkAndRotateLogFile() {
 		multiWriter := &logWriter{
 			console: os.Stdout,
 			file:    fileLogger,
-			enc:     systemConsoleEncoding(),
 		}
 		sysLog = log.New(multiWriter, "", 0)
 
@@ -166,6 +158,8 @@ func Init() {
 		return
 	}
 	logPath = gfile.Join(gfile.Pwd(), "logs")
+	// 将控制台输出代码页设为 UTF-8，保证 Windows 真实控制台正常显示汉字
+	setupConsole()
 	currentDate = gtime.Date()
 	filePath = gfile.Join(logPath, fmt.Sprintf("log-%s.log", currentDate))
 	fileLogger = &lumberjack.Logger{
@@ -179,7 +173,6 @@ func Init() {
 	multiWriter := &logWriter{
 		console: os.Stdout,
 		file:    fileLogger,
-		enc:     systemConsoleEncoding(),
 	}
 	sysLog = log.New(multiWriter, "", 0)
 
