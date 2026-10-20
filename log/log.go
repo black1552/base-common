@@ -13,6 +13,7 @@ import (
 
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/os/gtime"
+	"golang.org/x/text/encoding"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -46,15 +47,22 @@ func stripAnsiColors(s string) string {
 type logWriter struct {
 	console io.Writer
 	file    io.Writer
+	enc     encoding.Encoding // 控制台输出编码，追随系统；nil 表示 UTF-8 直出
 }
 
 func (w *logWriter) Write(p []byte) (n int, err error) {
-	// 控制台输出保留颜色
-	_, err = w.console.Write(p)
+	// 控制台输出保留颜色，并按系统编码转码（如 Windows 中文控制台的 GBK）
+	consoleBytes := p
+	if w.enc != nil {
+		if dst, e := w.enc.NewEncoder().Bytes(p); e == nil {
+			consoleBytes = dst
+		}
+	}
+	_, err = w.console.Write(consoleBytes)
 	if err != nil {
 		return 0, err
 	}
-	// 文件输出去除颜色码
+	// 文件输出保持 UTF-8 并去除颜色码
 	colorless := stripAnsiColors(string(p))
 	_, err = w.file.Write([]byte(colorless))
 	if err != nil {
@@ -143,6 +151,7 @@ func checkAndRotateLogFile() {
 		multiWriter := &logWriter{
 			console: os.Stdout,
 			file:    fileLogger,
+			enc:     systemConsoleEncoding(),
 		}
 		sysLog = log.New(multiWriter, "", 0)
 
@@ -170,6 +179,7 @@ func Init() {
 	multiWriter := &logWriter{
 		console: os.Stdout,
 		file:    fileLogger,
+		enc:     systemConsoleEncoding(),
 	}
 	sysLog = log.New(multiWriter, "", 0)
 
