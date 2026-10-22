@@ -303,6 +303,9 @@ func enhanceOpenAPIDoc(s *ghttp.Server) {
 		},
 		Version: "Api列表",
 	}
+
+	// 文档页样式与 redoc 资源由库内统一提供，使用方无需再单独设置模板或静态目录。
+	serveRedoc(s)
 }
 
 var ConfigPath = filepath.Join(gfile.Pwd(), "manifest", "config", "config.yaml")
