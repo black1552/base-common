@@ -140,15 +140,15 @@ func checkAndRotateLogFile() {
 			MaxAge:     30,    // 保留 30 天
 			Compress:   false, // 启用压缩
 		}
-		// 创建新的 writer
+		// 创建新的 writer（控制台按平台/代码页自适应转码，文件保持 UTF-8）
 		multiWriter := &logWriter{
-			console: os.Stdout,
+			console: newConsoleWriter(os.Stdout),
 			file:    fileLogger,
 		}
 		sysLog = log.New(multiWriter, "", 0)
 
 		// 清理 30 天前的旧日志
-		cleanOldLogs(30)
+		cleanOldLogs(20)
 	}
 }
 
@@ -158,8 +158,6 @@ func Init() {
 		return
 	}
 	logPath = gfile.Join(gfile.Pwd(), "logs")
-	// 将控制台输出代码页设为 UTF-8，保证 Windows 真实控制台正常显示汉字
-	setupConsole()
 	currentDate = gtime.Date()
 	filePath = gfile.Join(logPath, fmt.Sprintf("log-%s.log", currentDate))
 	fileLogger = &lumberjack.Logger{
@@ -170,14 +168,16 @@ func Init() {
 		Compress:   false, // 启用压缩
 	}
 	// 使用自定义 writer 实现控制台带颜色、文件无颜色的输出
+	// 控制台经由 newConsoleWriter 适配：Windows 真实控制台按其代码页转码，
+	// 重定向（IDE/管道）及日志文件统一输出 UTF-8，避免汉字乱码
 	multiWriter := &logWriter{
-		console: os.Stdout,
+		console: newConsoleWriter(os.Stdout),
 		file:    fileLogger,
 	}
 	sysLog = log.New(multiWriter, "", 0)
 
 	// 启动时清理 30 天前的旧日志
-	cleanOldLogs(30)
+	cleanOldLogs(20)
 }
 
 func Info(v ...any) {
